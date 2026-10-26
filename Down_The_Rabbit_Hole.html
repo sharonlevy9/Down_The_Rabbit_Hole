@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Down the Rabbit Hole – White Rabbit Runner</title>
+<link href="https://fonts.googleapis.com/css2?family=Fondamento&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#2a1608;--paper:#f6e6c0;--red:#d9261c;--gold:#e6b422}
+html,body{margin:0;height:100%;overflow:hidden;background:#120a14;color:var(--paper);font-family:'Fondamento',Georgia,'Palatino Linotype',serif}
+canvas{display:block}
+#hud{position:fixed;inset:0;pointer-events:none;display:none}
+#hud>div{position:absolute;text-shadow:0 2px 6px #000}
+#sc{top:14px;left:18px;font-size:2rem}
+#sc small{display:block;font-size:.95rem;opacity:.8}
+#hp{top:12px;right:18px;font-size:2.1rem;letter-spacing:4px;color:var(--red)}
+#hp .x{color:#4a2a2a}
+#mx{top:14px;left:50%;transform:translateX(-50%);font-size:1.5rem;color:var(--gold);text-align:center}
+#sb{width:150px;height:6px;margin:4px auto 0;background:#0006;border-radius:3px;overflow:hidden}
+#sb i{display:block;height:100%;background:var(--gold)}
+#ph{top:52px;left:50%;transform:translateX(-50%);font-size:1.05rem;opacity:.85}
+#pause{display:none;z-index:8}
+#pause h1{letter-spacing:6px}
+#tw{bottom:16px;left:50%;width:160px;height:8px;margin-left:-80px;background:#0006;border-radius:4px;display:none}
+#tb{position:absolute;top:-3px;left:74px;width:12px;height:14px;border-radius:50%;background:var(--gold)}
+#flash{position:fixed;inset:0;background:#d9261c;opacity:0;pointer-events:none;transition:opacity .35s}
+.ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#120a14b8}
+.card{background:var(--paper);color:var(--ink);border:3px solid var(--gold);border-radius:18px;padding:26px 34px;max-width:min(540px,90vw);max-height:86vh;overflow:auto;text-align:center;box-shadow:0 0 0 6px var(--ink),0 20px 60px #000a}
+.card h1{margin:0 0 4px;font-size:2.4rem;line-height:1.1}
+.card p{margin:8px 0;line-height:1.45}
+.card kbd{background:var(--ink);color:var(--paper);border-radius:5px;padding:1px 7px;font-family:inherit}
+button{font:inherit;font-size:1.15rem;background:var(--red);color:var(--paper);border:2px solid var(--ink);border-radius:999px;padding:9px 26px;cursor:pointer;margin:6px 4px}
+button:hover{background:#b81c13}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+button.alt{background:var(--ink)}
+#bar{position:fixed;left:12px;bottom:12px;display:flex;gap:6px;align-items:center;z-index:5}
+#bar button{font-size:.9rem;padding:6px 14px;margin:0}
+#conn{font-size:.9rem;opacity:.85}
+#help{display:none;z-index:9}
+/* intro screen: the clip fills the screen, the instructions are a storybook card in the meadow on the right.
+   Colours are taken from the clip: sky, bush green, path brown, coat red, watch gold. */
+:root{--sky:#7aa8db;--bush:#2f6b2a;--grass:#8cbf4b;--path:#7d3a20;--coat:#c63a2b;--watch:#e9b43c;--cream:#fbf3dc}
+.ov.intro{display:block;padding:0;background:#2c5a2a;overflow:hidden}
+.intro .bg{position:absolute;inset:-60px;background:url(rabbit-late.gif) center/cover;filter:blur(28px) saturate(1.15) brightness(.75)}
+#gif{position:absolute;left:0;top:0;height:100%;width:auto;max-width:100%;object-fit:contain;object-position:left center;-webkit-mask-image:linear-gradient(90deg,#000 93%,transparent);mask-image:linear-gradient(90deg,#000 93%,transparent)}
+.intro .shade{position:absolute;inset:0;background:linear-gradient(90deg,transparent 55%,#1d3b1a66 80%)}
+.intro .card{position:absolute;right:3vw;top:50%;transform:translateY(-50%);width:min(390px,90vw);max-height:94vh;box-sizing:border-box;
+  padding:20px 24px 18px;background:var(--cream);color:#3a2414;border:3px solid var(--watch);border-radius:22px 22px 22px 22px;
+  box-shadow:0 0 0 5px var(--bush),0 18px 50px #0008;text-align:center}
+.intro h1{color:var(--coat);font-size:2.15rem;margin:0;text-shadow:1px 1px 0 #fff8,2px 2px 0 #e9b43c66}
+.intro .sub{margin:2px 0 8px;color:var(--bush);font-style:italic;font-size:1.05rem}
+.intro .story{font-size:.92rem;margin:0 0 10px}
+.ctl{width:100%;border-collapse:collapse;font-size:.88rem;margin:4px 0 10px}
+.ctl th{color:var(--bush);font-weight:normal;font-variant:small-caps;letter-spacing:1px;font-size:.95rem;padding:2px 4px;border-bottom:2px solid var(--grass)}
+.ctl td{padding:4px;border-bottom:1px dashed #7d3a2033}.ctl td:first-child{text-align:left;color:var(--path);font-weight:bold}
+.ctl kbd{background:var(--path);color:var(--cream);font-size:.8rem;padding:0 5px}
+.mb{background:#e7f0cf;border:2px solid var(--grass);border-radius:14px;padding:8px 12px;margin:0 0 12px;text-align:left;font-size:.9rem}
+.mb b{color:var(--bush)}.mb ol{margin:4px 0;padding-left:20px}.mb li{margin:3px 0}
+.intro button{background:var(--coat);border-color:var(--watch);color:var(--cream)}
+.intro button:hover{background:#a92d20}
+.intro button.alt{background:var(--sky);border-color:var(--bush);color:#13284a}
+.intro #go{font-size:1.3rem;padding:10px 34px;box-shadow:0 4px 0 var(--path)}
+button.sm{font-size:.82rem;padding:3px 11px;margin:2px 2px}
+#conn2{margin:4px 0 0;font-size:.85rem;color:var(--path)}
+.card .hint{display:block;font-size:.8rem;opacity:.7;margin-top:4px}
+body.menu #bar,body.menu canvas{display:none}
+@media (max-width:760px),(max-aspect-ratio:1/1){.ov.intro{overflow:auto}.intro .bg,.intro .shade{position:fixed}
+  #gif{position:relative;width:100%;height:auto;max-height:none;-webkit-mask-image:none;mask-image:none}
+  .intro .card{position:relative;right:auto;top:auto;transform:none;margin:10px auto 20px;max-height:none}}
+button.cp{display:block;margin:6px 0 4px auto;font-size:.85rem;padding:4px 14px;background:var(--ink)}
+pre{margin-top:0;text-align:left;background:var(--ink);color:#f3e3b5;padding:10px 12px;border-radius:8px;font-size:.78rem;overflow:auto;white-space:pre}
+.card h3{margin:14px 0 2px}
+</style>
+</head>
+<body class="menu">
+<div id="hud">
+  <div id="sc"><span id="scv">0</span><small id="dv">0 m · 0 carrots</small></div>
+  <div id="mx"></div>
+  <div id="ph"></div>
+  <div id="hp"></div>
+  <div id="tw"><div id="tb"></div></div>
+</div>
+<div id="flash"></div>
+
+<div id="menu" class="ov intro">
+  <div class="bg"></div>
+  <img id="gif" src="rabbit-late.gif" alt="The White Rabbit running and checking his pocket watch">
+  <div class="shade"></div>
+  <div class="card">
+    <h1>Down the Rabbit Hole</h1>
+    <p class="sub">Help the White Rabbit hurry through the burrow!</p>
+    <p class="story">Collect carrots and catch the rare golden pocket watch to slow time for 20 seconds. After 15 seconds it gets faster. Don’t lose all three hearts.</p>
+    <table class="ctl">
+      <tr><th></th><th>Keyboard</th><th>micro:bit</th></tr>
+      <tr><td>Move</td><td>hold <kbd>←</kbd> <kbd>→</kbd> / <kbd>A</kbd> <kbd>D</kbd></td><td>tilt</td></tr>
+      <tr><td>Jump</td><td><kbd>↑</kbd> / <kbd>W</kbd></td><td>button A</td></tr>
+      <tr><td>Duck</td><td>hold <kbd>↓</kbd> / <kbd>S</kbd></td><td>hold B</td></tr>
+      <tr><td>Pause</td><td><kbd>Space</kbd></td><td>A + B</td></tr>
+    </table>
+    <div class="mb"><b>Play with a micro:bit</b>
+      <ol><li>Put the game code on it <button class="sm alt" id="hb2">Show code</button></li>
+        <li>Plug it in by USB, then <button class="sm" id="cb2">Connect</button></li></ol>
+      <p id="conn2">Not connected. You can also play with the keyboard.</p></div>
+    <button id="go">Start running</button>
+    <span class="hint">or press Enter / micro:bit button A</span>
+  </div>
+</div>
+
+<div id="over" class="ov" style="display:none"><div class="card">
+  <h1>Too late!</h1>
+  <p id="ovt"></p>
+  <button id="again">Run again</button>
+</div></div>
+
+<div id="pause" class="ov"><div class="card">
+  <h1>PAUSED</h1>
+  <p>Press <kbd>Space</kbd> (or micro:bit <b>A+B</b>) to keep running.</p>
+</div></div>
+
+<div id="help" class="ov"><div class="card">
+  <h1 style="font-size:1.8rem">Flash your micro:bit</h1>
+  <p>The game reads one line per update: <b>X,BTN_A,BTN_B</b> at 115200 baud. Tilting steers the rabbit smoothly across the tunnel (a small dead zone around flat keeps it centred). Hold B to stay ducked.</p>
+  <h3>MakeCode (makecode.microbit.org, JavaScript tab)</h3>
+<pre>serial.redirectToUSB()
+serial.setBaudRate(BaudRate.BaudRate115200)
+basic.showIcon(IconNames.Rabbit)
+basic.forever(function () {
+    let a = 0
+    let b = 0
+    if (input.buttonIsPressed(Button.A)) {
+        a = 1
+    }
+    if (input.buttonIsPressed(Button.B)) {
+        b = 1
+    }
+    serial.writeLine("" + input.acceleration(Dimension.X) + "," + a + "," + b)
+    basic.pause(30)
+})</pre>
+  <h3>MicroPython (Mu / python.microbit.org)</h3>
+<pre>from microbit import *
+
+uart.init(baudrate=115200)
+display.show(Image.RABBIT)
+
+while True:
+    x = accelerometer.get_x()
+    a = 1 if button_a.is_pressed() else 0
+    b = 1 if button_b.is_pressed() else 0
+    print("%d,%d,%d" % (x, a, b))
+    sleep(30)</pre>
+  <p>Tilt steers, A jumps, hold B to duck, press <b>A+B together</b> to pause.</p>
+  <p>Download the code to the micro:bit (a rabbit appears on its screen when it's running). Then click <b>Connect micro:bit</b> and pick the board. Use Chrome or Edge, and <b>close the MakeCode tab</b> (or disconnect it there) and any other serial monitor first, because only one page can use the port.</p>
+  <button id="hx">Close</button>
+</div></div>
+
+<div id="bar">
+  <button id="cb">Connect micro:bit</button>
+  <button id="hb" class="alt">micro:bit code</button>
+  <span id="conn"></span>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ---------- setup ---------- */
+let shown=false;
+function fail(m){if(shown)return;shown=true;const d=document.createElement('div');d.style.cssText='position:fixed;left:0;right:0;top:0;z-index:99;background:#900;color:#fff;padding:10px;font:14px monospace;white-space:pre-wrap';d.textContent=m;document.body.appendChild(d)}
+addEventListener('error',e=>fail('Error: '+e.message+' (line '+e.lineno+')'));
+if(typeof THREE==='undefined')throw new Error('Three.js did not load. Check your internet connection or ad-blocker.');
+const $=id=>document.getElementById(id);
+const R=new THREE.WebGLRenderer({antialias:true});
+const PX_BUDGET=2.2e6;let pr=1; // cap rendered pixels so big / hi-dpi screens stay smooth
+function fitRes(){pr=Math.min(devicePixelRatio,2,Math.sqrt(PX_BUDGET/(innerWidth*innerHeight)));R.setPixelRatio(pr);R.setSize(innerWidth,innerHeight)}
+fitRes();
+R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFShadowMap;
+document.body.prepend(R.domElement);
+const S=new THREE.Scene();S.background=new THREE.Color(0x120a14);S.fog=new THREE.Fog(0x120a14,25,120);
+const C=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,200);C.position.set(0,4.6,7.5);
+S.add(new THREE.HemisphereLight(0xffe2b8,0x3a2418,1.35));
+const sun=new THREE.DirectionalLight(0xfff0d0,.85);sun.position.set(5,14,6);sun.castShadow=true;
+sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-14,right:14,top:22,bottom:-22,near:1,far:50});
+sun.shadow.bias=-.0005;sun.shadow.camera.updateProjectionMatrix();sun.target.position.set(0,0,-6);S.add(sun,sun.target);
+const glow=new THREE.PointLight(0xffb05a,1.1,60);glow.position.set(0,5,3);S.add(glow);
+const M=(c,o={})=>new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:.8},o));
+const SP=new THREE.SphereGeometry(1,16,12);
+function mk(g,m,p,x=0,y=0,z=0,sx=1,sy=1,sz=1){const o=new THREE.Mesh(g,m);o.position.set(x,y,z);o.scale.set(sx,sy,sz);o.castShadow=true;p.add(o);return o}
+
+/* ---------- textures & shared parts ---------- */
+const CT=(()=>{const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d');
+  g.fillStyle='#fff8e6';g.fillRect(0,0,128,128);g.fillStyle='#222';g.font='bold 18px Georgia';g.textAlign='center';g.textBaseline='middle';
+  for(let i=1;i<=12;i++){const a=i/12*6.283;g.fillText(i,64+Math.sin(a)*46,64-Math.cos(a)*46)}
+  g.strokeStyle='#c22';g.lineWidth=4;g.beginPath();g.moveTo(64,64);g.lineTo(64,28);g.moveTo(64,64);g.lineTo(92,70);g.stroke();
+  return new THREE.CanvasTexture(c)})();
+const CARD=['♥','♦','♠','♣'].map((s,i)=>{const c=document.createElement('canvas');c.width=64;c.height=96;const g=c.getContext('2d');
+  g.fillStyle='#fffaf0';g.fillRect(0,0,64,96);g.strokeStyle='#999';g.strokeRect(2,2,60,92);g.fillStyle=i<2?'#cc1f1f':'#1b1b1b';
+  g.textAlign='center';g.textBaseline='middle';g.font='34px serif';g.fillText(s,32,48);g.font='16px serif';g.fillText(s,12,14);g.fillText(s,52,82);
+  return new THREE.CanvasTexture(c)});
+const GOLD=M(0xe8b830,{metalness:.8,roughness:.25,emissive:0x553300});
+function watch(r){const g=new THREE.Group();
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(r,r*.13,10,28),GOLD);
+  const f1=new THREE.Mesh(new THREE.CircleGeometry(r,28),new THREE.MeshBasicMaterial({map:CT}));
+  const f2=f1.clone();f2.rotation.y=Math.PI;
+  const cr=new THREE.Mesh(new THREE.CylinderGeometry(r*.17,r*.17,r*.28,8),GOLD);cr.position.y=r*1.12;
+  const rg=new THREE.Mesh(new THREE.TorusGeometry(r*.22,r*.05,6,12),GOLD);rg.position.y=r*1.38;
+  g.add(ring,f1,f2,cr,rg);g.traverse(o=>o.castShadow=true);return g}
+
+/* ---------- the White Rabbit ---------- */
+const W=M(0xffffff,{roughness:1,emissive:0x333333}),PK=M(0xf4a3b8),RED=M(0xe0261b),BUR=M(0x7a1224),LAV=M(0xa9a0cf),BLK=M(0x151515);
+const CR=M(0xf7e3a6,{flatShading:true}),GL=M(0xaadddd,{metalness:.5,roughness:.3});
+const rb=new THREE.Group(),bd=new THREE.Group();rb.add(bd);rb.scale.setScalar(.8);S.add(rb);
+mk(SP,LAV,bd,0,.8,0,.5,.45,.42);                       // trousers
+mk(SP,RED,bd,0,1.25,0,.48,.5,.4);                      // coat
+mk(SP,RED,bd,0,1.0,.3,.36,.3,.25);                     // coat tails
+mk(new THREE.CylinderGeometry(.4,.3,.3,10),CR,bd,0,1.62,0); // ruffled collar
+mk(SP,W,bd,0,.8,.46,.2,.2,.2);                         // fluffy tail
+const hd=new THREE.Group();hd.position.set(0,1.95,-.02);bd.add(hd);
+mk(SP,W,hd,0,0,0,.34,.32,.34);mk(SP,W,hd,0,-.08,-.25,.2,.16,.18);
+mk(SP,M(0xb3445f),hd,0,-.03,-.42,.07,.06,.06);         // nose
+mk(SP,PK,hd,0,-.17,-.34,.05,.03,.03);                  // open mouth
+const ears=[];
+[-1,1].forEach(s=>{
+  mk(SP,M(0xf2a0b8),hd,s*.14,.07,-.28,.1,.11,.05);mk(SP,BLK,hd,s*.14,.07,-.32,.035,.04,.02);
+  const sp=mk(new THREE.TorusGeometry(.12,.012,6,16),GL,hd,s*.14,.07,-.335);
+  const br=mk(new THREE.BoxGeometry(.17,.025,.02),BLK,hd,s*.14,.21,-.3);br.rotation.z=s*.35;
+  const eg=new THREE.Group();eg.position.set(s*.12,.28,.05);hd.add(eg);eg.rotation.z=s*.15;
+  mk(SP,W,eg,0,.5,0,.1,.5,.045);mk(SP,PK,eg,0,.5,-.035,.065,.42,.03);ears.push(eg);
+  const bt=mk(new THREE.ConeGeometry(.12,.2,6),BUR,bd,s*.13,1.55,-.3);bt.rotation.z=s*Math.PI/2;
+});
+mk(new THREE.BoxGeometry(.08,.02,.02),GL,hd,0,.07,-.335);
+mk(SP,BUR,bd,0,1.55,-.3,.06,.06,.05);                  // bow-tie knot
+const arms=[],legs=[];let wpv;
+[-1,1].forEach((s,i)=>{
+  const ag=new THREE.Group();ag.position.set(s*.5,1.45,0);bd.add(ag);
+  mk(new THREE.CylinderGeometry(.09,.11,.45,8),RED,ag,0,-.22,0);mk(SP,W,ag,0,-.5,0,.12,.12,.12);arms.push(ag);
+  if(s>0){wpv=new THREE.Group();wpv.position.set(0,-.5,0);ag.add(wpv);
+    mk(new THREE.CylinderGeometry(.015,.015,.4,4),GOLD,wpv,0,-.2,0);
+    const w=watch(.38);w.position.y=-.8;w.rotation.y=Math.PI/2;wpv.add(w)}
+  const lg=new THREE.Group();lg.position.set(s*.2,.7,0);bd.add(lg);
+  mk(new THREE.CylinderGeometry(.14,.12,.55,8),LAV,lg,0,-.28,0);mk(SP,W,lg,0,-.58,-.12,.17,.1,.36);legs.push(lg);
+});
+rb.traverse(o=>{if(o.isMesh)o.receiveShadow=false});
+
+/* ---------- burrow ---------- */
+const MINX=-3.2,MAXX=3.2,segs=[],floaters=[]; // tunnel boundaries the rabbit can run between
+const clampX=x=>Math.max(MINX,Math.min(MAXX,x));
+const DIRT=M(0xffffff,{vertexColors:true,side:THREE.BackSide,flatShading:true,roughness:1});
+const FLOOR=M(0x6a4a2c,{roughness:1}),ROOT=M(0x5b3a1c,{flatShading:true});
+function mkSeg(zc){
+  const g=new THREE.Group();g.position.z=zc;
+  const cg=new THREE.CylinderGeometry(7.5,7.5,50,32,10,true);cg.rotateX(Math.PI/2);
+  const p=cg.attributes.position,cols=[],c=new THREE.Color();
+  for(let k=0;k<p.count;k++){const x=p.getX(k),y=p.getY(k),z=p.getZ(k),a=Math.atan2(y,x);
+    const n=Math.sin(a*5+z*.377)*.35+Math.sin(a*9-z*.628)*.2+Math.sin(a*3+z*.251)*.3;
+    p.setXYZ(k,Math.cos(a)*(7.5+n),Math.sin(a)*(7.5+n),z);c.setHSL(.07+n*.02,.5,.32+n*.14);cols.push(c.r,c.g,c.b)}
+  cg.setAttribute('color',new THREE.Float32BufferAttribute(cols,3));cg.computeVertexNormals();
+  const wall=new THREE.Mesh(cg,DIRT);wall.position.y=3.5;wall.receiveShadow=true;g.add(wall);
+  const fl=new THREE.Mesh(new THREE.PlaneGeometry(14,50),FLOOR);fl.rotation.x=-Math.PI/2;fl.receiveShadow=true;g.add(fl);
+  [MINX-.5,MAXX+.5].forEach(x=>{const l=new THREE.Mesh(new THREE.PlaneGeometry(.07,50),M(0x9a7a4a));l.rotation.x=-Math.PI/2;l.position.set(x,.01,0);g.add(l)});
+  for(let k=0;k<9;k++){ // hanging roots
+    const a=Math.random()*Math.PI*1.6-.3,len=2+Math.random()*2.5,px=Math.cos(a)*7.1,py=3.5+Math.sin(a)*7.1;
+    const m=new THREE.Mesh(new THREE.CylinderGeometry(.06,.2,len,5),ROOT);m.position.set(px,py,Math.random()*50-25);
+    const dir=new THREE.Vector3(-px,3.5-py,0).normalize();m.quaternion.setFromUnitVectors(new THREE.Vector3(0,-1,0),dir.negate());
+    m.translateY(-len/2+.2);g.add(m)}
+  const caps=[0x31e0c8,0xff5fd0,0x9a6bff];
+  for(let k=0;k<7;k++){ // glowing mushrooms
+    const col=caps[k%3],s=.6+Math.random()*1.0,m=new THREE.Group(),sd=Math.random()<.5?-1:1;
+    mk(new THREE.CylinderGeometry(.12,.17,.6,8),M(0xf3ead2),m,0,.3,0);
+    mk(new THREE.SphereGeometry(.45,12,8,0,6.283,0,1.57),M(col,{emissive:col,emissiveIntensity:.9}),m,0,.6,0);
+    m.scale.setScalar(s);m.position.set(sd*(3.9+Math.random()*2.6),0,Math.random()*46-23);g.add(m)}
+  for(let k=0;k<7;k++){ // floating Wonderland things
+    const t=k%4,f=new THREE.Group();
+    if(t===0){mk(new THREE.CylinderGeometry(.35,.22,.35,16),M(0xfdfdf8),f,0,.18,0);mk(new THREE.CylinderGeometry(.5,.45,.05,16),M(0x5aa0d8),f,0,0,0);
+      const h=mk(new THREE.TorusGeometry(.13,.035,6,12),M(0xfdfdf8),f,.4,.18,0)}
+    else if(t===1||t===2){mk(new THREE.BoxGeometry(.9,1.3,.03),M(0xffffff,{map:CARD[k%4]}),f)}
+    else{const col=caps[k%3];mk(new THREE.CylinderGeometry(.1,.14,.5,8),M(0xf3ead2),f,0,-.2,0);
+      mk(new THREE.SphereGeometry(.5,12,8,0,6.283,0,1.57),M(col,{emissive:col,emissiveIntensity:1}),f,0,0,0)}
+    const side=Math.random()<.5?-1:1,hi=Math.random()<.35;
+    f.position.set(hi?Math.random()*6-3:side*(3.6+Math.random()*2.6),hi?6.3+Math.random():1.8+Math.random()*4.2,Math.random()*46-23);
+    f.rotation.set(Math.random()*1.2,Math.random()*6,Math.random()*1.2);g.add(f);
+    floaters.push({m:f,y0:f.position.y,ph:Math.random()*6,sp:.4+Math.random()*.8})}
+  g.traverse(o=>o.castShadow=false);S.add(g);segs.push(g)}
+[25,-25,-75,-125].forEach(mkSeg);
+
+/* ---------- obstacles & pickups ---------- */
+const ents=[],ROCK=M(0x7d8076,{flatShading:true}),MOSS=M(0x4f8a3a,{flatShading:true}),CARR=M(0xff8a1f,{emissive:0x7a2c00,emissiveIntensity:.5}),LEAF=M(0x3fae3a);
+const DG=new THREE.DodecahedronGeometry(1,0);
+function mkRock(){const g=new THREE.Group();mk(DG,ROCK,g,0,.38,0,.85,.52,.72);mk(DG,MOSS,g,.1,.72,0,.4,.2,.4);mk(DG,MOSS,g,-.4,.55,.2,.22,.15,.22);return g}
+function mkRoot(){const g=new THREE.Group();const b=mk(new THREE.CylinderGeometry(.28,.34,2.3,7),ROOT,g,0,2.0,0);b.rotation.z=Math.PI/2;
+  [-.95,.95].forEach(x=>mk(new THREE.CylinderGeometry(.22,.3,5,6),ROOT,g,x,4.3,0));
+  for(let i=0;i<4;i++){const f=mk(new THREE.ConeGeometry(.05,.45,4),ROOT,g,-.8+i*.53,1.5,0);f.rotation.z=Math.PI}
+  mk(SP,LEAF,g,-.5,2.3,.1,.2,.12,.2);mk(SP,LEAF,g,.6,2.3,-.1,.2,.12,.2);return g}
+function mkCarrot(){const g=new THREE.Group(),c=mk(new THREE.ConeGeometry(.17,.75,8),CARR,g,0,1.0,0);c.rotation.z=Math.PI;
+  for(let i=0;i<3;i++){const l=mk(new THREE.ConeGeometry(.05,.3,4),LEAF,g,(i-1)*.07,1.45,0);l.rotation.z=(i-1)*.4}g.rotation.z=.25;return g}
+function mkWatch(){const g=new THREE.Group(),w=watch(.5);w.position.y=1.2;g.add(w);
+  const h=new THREE.Mesh(new THREE.SphereGeometry(.85,12,8),new THREE.MeshBasicMaterial({color:0xffd24a,transparent:true,opacity:.2,depthWrite:false}));h.position.y=1.2;g.add(h);return g}
+function addEnt(k,x,z){const m={rock:mkRock,root:mkRoot,carrot:mkCarrot,watch:mkWatch}[k]();m.position.set(x,0,z);S.add(m);ents.push({k,m})}
+const WATCH_CHANCE=.08; // share of carrot trails that hide a pocket watch
+function spawnRow(){
+  const type=Math.random()<.5?'rock':'root',n=Math.random()<.35?2:1,xs=[];
+  for(let k=0;k<20&&xs.length<n;k++){const x=MINX+.4+Math.random()*(MAXX-MINX-.8);if(xs.every(o=>Math.abs(o-x)>2.6))xs.push(x)}
+  xs.forEach(x=>addEnt(type,x,-110));
+  const gap=18+Math.random()*10;nextSp=gap;
+  if(Math.random()<.85){const cx=MINX+.5+Math.random()*(MAXX-MINX-1),slope=(Math.random()-.5)*1.2,wk=slowT<=0&&!ents.some(e=>e.k==='watch')&&Math.random()<WATCH_CHANCE?2:-1;
+    for(let k=0;k<5;k++)addEnt(k===wk?'watch':'carrot',clampX(cx+(k-2)*slope),-110-gap*.5+(k-2)*2.2)}}
+
+/* ---------- game state ---------- */
+let state='menu',rx=0,vx=0,lean=0,ry=0,vy=0,onGround=true,duckAmt=0,lives=3,inv=0,score=0,time=0,speed=9,slowT=0,slowMul=1,carrots=0,shake=0,nextSp=0,dist=0,ph=0,t=0,pa=0,pb=0,best=0,camX=0,camY=4.6;
+try{best=+localStorage.getItem('wrBest')||0}catch(e){}
+function hearts(){$('hp').innerHTML=[0,1,2].map(i=>i<lives?'♥':'<span class="x">♥</span>').join('')}
+function reset(){ents.splice(0).forEach(e=>S.remove(e.m));rx=0;vx=0;lean=0;ry=0;vy=0;onGround=true;lives=3;inv=0;score=0;time=0;slowT=0;slowMul=1;carrots=0;shake=0;nextSp=20;dist=0;hearts()}
+function start(){reset();state='play';document.body.classList.remove('menu');$('menu').style.display=$('over').style.display=$('pause').style.display='none';$('hud').style.display='block'}
+function end(){state='over';try{if(score>best){best=score|0;localStorage.setItem('wrBest',best)}}catch(e){}
+  $('ovt').innerHTML='You ran '+(dist|0)+' m, gathered '+carrots+' carrots and scored <b>'+(score|0)+'</b>.<br>Best: '+(best|0);$('over').style.display='flex'}
+$('go').onclick=start;$('again').onclick=start;
+document.querySelectorAll('#help pre').forEach(pre=>{const b=document.createElement('button');b.className='cp';b.textContent='Copy code';
+  b.onclick=async()=>{const txt=pre.textContent;
+    try{await navigator.clipboard.writeText(txt)}catch(e){const r=document.createRange();r.selectNodeContents(pre);const sl=getSelection();sl.removeAllRanges();sl.addRange(r);document.execCommand('copy');sl.removeAllRanges()}
+    b.textContent='Copied ✓';setTimeout(()=>b.textContent='Copy code',1500)};
+  pre.before(b)});
+$('hb').onclick=()=>$('help').style.display='flex';$('hx').onclick=()=>$('help').style.display='none';
+
+/* ---------- input ---------- */
+const keys=new Set(),held=(...c)=>c.some(k=>keys.has(k));
+let mbX=null,mbB=0,mbZ=0,mbT=-1e9; // smoothed micro:bit tilt, B state and when it arrived
+const jump=()=>{if(state==='play'&&onGround){vy=11.5;onGround=false}};
+const duckStart=()=>{if(state==='play'&&!onGround)vy=Math.min(vy,-18)}; // pressing duck mid-air drops you fast
+function togglePause(){if(state==='play'){state='paused';$('pause').style.display='flex'}
+  else if(state==='paused'){state='play';$('pause').style.display='none'}}
+addEventListener('keydown',e=>{const k=e.code;
+  if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(k))e.preventDefault();
+  keys.add(k);if(e.repeat)return;
+  if(k==='Space'){togglePause();return}
+  if((state==='menu'||state==='over')&&$('help').style.display!=='flex'&&k==='Enter'){start();return}
+  if(k==='ArrowUp'||k==='KeyW')jump();else if(k==='ArrowDown'||k==='KeyS')duckStart()});
+addEventListener('keyup',e=>keys.delete(e.code));
+addEventListener('blur',()=>{keys.clear();if(state==='play')togglePause()});
+const TILT_DZ=80,TILT_FULL=700; // dead zone around flat, and the tilt that reaches the tunnel wall
+function tiltTarget(x){const m=Math.abs(x);if(m<TILT_DZ)return 0;
+  const n=Math.min(1,(m-TILT_DZ)/(TILT_FULL-TILT_DZ));return x<0?n*MINX:n*MAXX}
+function onLine(l){l=l.trim();if(!l)return;let x,a,b;
+  if(l[0]==='{'){try{const j=JSON.parse(l);x=+j.x||0;a=+(j.a??j.btn_a)||0;b=+(j.b??j.btn_b)||0}catch(e){return}}
+  else{const p=l.split(',');if(p.length!==3||!p.every(v=>/^-?\d+$/.test(v.trim())))return; // skip lines damaged in transit
+    x=+p[0];a=+p[1];b=+p[2]}
+  if(isNaN(x))return;$('conn').textContent='X='+x+'  A='+a+'  B='+b;
+  $('tb').style.left=(74+Math.max(-1,Math.min(1,x/1024))*74)+'px';
+  mbX=mbX===null?x:mbX+(x-mbX)*.2;mbZ=b?0:mbZ+1;if(b)mbB=1;else if(mbZ>=2)mbB=0; // release only after 2 'up' readings
+  mbT=performance.now(); // low-pass: the accelerometer is noisy in a hand
+  if(a&&b){if(!(pa&&pb))togglePause()} // A+B together pauses / resumes
+  else{if(a&&!pa){if(state==='play')jump();else if(state!=='paused')start()}
+    if(b&&!pb)duckStart()}
+  pa=a;pb=b}
+let port=null,linked=false;
+async function connect(){
+  if(!('serial' in navigator)){alert('Web Serial needs Chrome or Edge on desktop.');return}
+  try{port=await navigator.serial.requestPort();await port.open({baudRate:115200});
+    linked=true;$('conn').textContent='micro:bit connected, waiting for data…';$('tw').style.display='block';
+    const dec=new TextDecoderStream();port.readable.pipeTo(dec.writable).catch(()=>{});
+    const rd=dec.readable.getReader();let buf='';
+    for(;;){const {value,done}=await rd.read();if(done)break;buf+=value;let i;
+      while((i=buf.indexOf('\n'))>=0){onLine(buf.slice(0,i));buf=buf.slice(i+1)}}
+  }catch(e){$('conn').textContent=e&&e.name==='NotFoundError'?'':'Could not connect: '+(e.message||e)}
+  if(port){try{await port.close()}catch(e){}port=null}
+  mbX=null;mbB=0;if(linked){linked=false;$('conn').textContent='disconnected'}}
+$('cb').onclick=$('cb2').onclick=()=>{if(!port)connect()};$('hb2').onclick=$('hb').onclick;
+new MutationObserver(()=>{const c=$('conn').textContent; // mirror the status on the intro card in plain words
+  $('conn2').textContent=/^X=/.test(c)?'✓ micro:bit connected! Tilt it to test, press A to start.':c||'Not connected. You can also play with the keyboard.'})
+  .observe($('conn'),{childList:true,characterData:true,subtree:true});addEventListener('click',e=>{if(e.target.blur)e.target.blur()});
+
+/* ---------- main loop ---------- */
+const hudTxt={};function setT(id,v,html){if(hudTxt[id]===v)return;hudTxt[id]=v;$(id)[html?'innerHTML':'textContent']=v}
+function hit(e){if(inv>0)return;e.dead=true;lives--;inv=1.6;shake=.6;hearts();
+  $('flash').style.opacity=.35;setTimeout(()=>$('flash').style.opacity=0,120);if(lives<=0)end()}
+const WARM=15,BASE0=12,KEY_SPEED=8,SLOW_DUR=20,SLOW_MUL=.5;
+function baseSpeed(tm){if(tm<WARM)return BASE0;const u=tm-WARM; // gentle start, then a 4s kick and steady ramp
+  return Math.min(44,BASE0+8*Math.min(1,u/4)+u*.4)}
+let last=performance.now(),ftAvg=16,lowT=0;
+function frame(now){requestAnimationFrame(frame);
+  const raw=Math.min(200,now-last),dt=Math.min(.1,raw/1e3);last=now;
+  ftAvg+=(raw-ftAvg)*.05; // drop resolution if the machine can't keep up
+  if(ftAvg>24&&pr>.5){if((lowT+=dt)>1.5){pr*=.8;R.setPixelRatio(pr);R.setSize(innerWidth,innerHeight);lowT=0;ftAvg=16}}else lowT=0;
+  if(state==='menu')return; // the intro clip is showing, skip 3D work
+  if(state==='paused'){R.render(S,C);return} // frozen: no timers, spawns or movement advance
+  t+=dt;const play=state==='play';
+  if(play){time+=dt;slowT=Math.max(0,slowT-dt);
+    slowMul+=((slowT>0?SLOW_MUL:1)-slowMul)*Math.min(1,dt*(slowT>0?4:1.2)); // quick slow-down, gentle recovery
+    speed=baseSpeed(time)*slowMul}else speed=state==='menu'?9:4;
+  const dz=speed*dt;dist+=play?dz:0;
+  segs.forEach(s=>{s.position.z+=dz;if(s.position.z>75)s.position.z-=200});
+  floaters.forEach(f=>{f.m.position.y=f.y0+Math.sin(t*f.sp+f.ph)*.35;f.m.rotation.y+=dt*.4*f.sp});
+  // rabbit
+  if(play&&dt>0){const kd=(held('ArrowRight','KeyD')?1:0)-(held('ArrowLeft','KeyA')?1:0);
+    const tilt=mbX!==null&&now-mbT<500;
+    if(kd||!tilt){vx+=(kd*KEY_SPEED-vx)*Math.min(1,dt*14);rx+=vx*dt} // held key wins over tilt
+    else{const nx=rx+(tiltTarget(mbX)-rx)*Math.min(1,dt*5);vx=(nx-rx)/dt;rx=nx}
+    if(rx<MINX||rx>MAXX){rx=clampX(rx);vx=0}}
+  if(!onGround){vy-=32*dt;ry+=vy*dt;if(ry<=0){ry=0;vy=0;onGround=true}}
+  const ducking=play&&onGround&&(held('ArrowDown','KeyS')||mbB===1);
+  duckAmt+=((ducking?1:0)-duckAmt)*Math.min(1,dt*14);
+  if(play){inv=Math.max(0,inv-dt);shake=Math.max(0,shake-dt*1.5)}
+  ph+=dt*speed*.55;const s=Math.sin(ph),air=!onGround;
+  rb.position.set(rx,ry,0);lean+=(Math.max(-8,Math.min(8,vx))-lean)*Math.min(1,dt*6);rb.rotation.y=lean*-.06;rb.rotation.z=lean*-.02;
+  rb.scale.y=.8*(1-.45*duckAmt);bd.rotation.x=-.25*duckAmt;
+  bd.position.y=air?0:Math.abs(s)*.14;
+  legs[0].rotation.x=air?-.7:s*.95;legs[1].rotation.x=air?-.4:-s*.95;
+  arms[0].rotation.x=air?-2.2:-s*.9;arms[1].rotation.x=air?-2.4:s*.9;
+  ears.forEach((e,i)=>{e.rotation.x=.55+(air?.5:Math.sin(ph*2+i)*.22);e.rotation.z=(i?1:-1)*(.15+Math.sin(ph+i)*.08)});
+  wpv.rotation.x=Math.sin(ph*2)*.5;wpv.rotation.z=.25+Math.sin(ph*2+1)*.25;
+  hd.rotation.y=Math.sin(t*.9)*.12; // small natural glance, never a backwards turn
+  rb.visible=inv<=0||Math.floor(t*14)%2===0;
+  // world logic
+  if(play){nextSp-=dz;if(nextSp<=0)spawnRow();
+    score+=dz*.5}
+  for(let i=ents.length-1;i>=0;i--){const e=ents[i],m=e.m;m.position.z+=dz;const z=m.position.z;
+    if(e.k==='carrot'||e.k==='watch')m.rotation.y+=dt*3;
+    if(play&&!e.dead){const dx=Math.abs(m.position.x-rx),near=w=>z>-w&&z-dz<w; // swept: did it pass the rabbit this frame?
+      if(e.k==='rock'){if(dx<1.1&&near(.9)&&ry<.8)hit(e)}            // rock ~1.7 wide + rabbit
+      else if(e.k==='root'){if(dx<1.35&&near(.7)&&duckAmt<.85)hit(e)} // root bar ~2.3 wide + rabbit
+      else if(dx<.95&&near(.9)){e.dead=true;S.remove(m);
+        if(e.k==='carrot'){carrots++;score+=25}else{slowT=SLOW_DUR;score+=150}}}
+    if(z>12||e.dead&&e.k!=='rock'&&e.k!=='root'){S.remove(m);ents.splice(i,1)}}
+  // camera
+  const sx=shake*(Math.random()-.5)*.6,sy=shake*(Math.random()-.5)*.6;
+  camX+=(rx*.55-camX)*Math.min(1,dt*5);
+  camY+=(4.6+ry*.35-camY)*Math.min(1,dt*6);
+  C.position.set(camX+sx,camY+sy,7.5);
+  C.lookAt(rx*.4,1.5,-8);
+  const fov=65+(speed-20)*.25;if(Math.abs(C.fov-fov)>.05){C.fov=fov;C.updateProjectionMatrix()}
+  // HUD
+  setT('scv',score|0);setT('dv',(dist|0)+' m · '+carrots+' carrots');
+  setT('mx',slowT>0?'⏱ Slow time '+slowT.toFixed(1)+'s<div id="sb"><i style="width:'+(slowT/SLOW_DUR*100).toFixed(1)+'%"></i></div>':'',1);
+  setT('ph',!play?'':time<WARM?'Warm-up · '+Math.ceil(WARM-time)+'s':time<WARM+3?'Speeding up!':'');
+  R.render(S,C)}
+hearts();requestAnimationFrame(frame);
+addEventListener('resize',()=>{fitRes();C.aspect=innerWidth/innerHeight;C.updateProjectionMatrix()});
+</script>
+</body>
+</html>
