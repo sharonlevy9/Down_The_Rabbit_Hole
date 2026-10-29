@@ -610,27 +610,20 @@ function tone(ac,f,t0,dur,type,vol,dest){const o=ac.createOscillator(),g=ac.crea
   o.connect(g);g.connect(dest);o.start(t0);o.stop(t0+dur+.05)}
 const hz=n=>440*Math.pow(2,(n-69)/12);
 function chime(){const ac=audio();if(!ac)return;const t0=ac.currentTime;[72,76,79,84,88].forEach((n,i)=>tone(ac,hz(n),t0+i*.07,.5,'sine',.18,ac.destination))}
-/* background music: an original light waltz in the spirit of the film's score, played by the browser.
-   16 bars of oom-pah-pah with a music-box tune on top; it slows down with slow time */
-const MEL=[[76,2],[79,1],[84,2],[83,1],[81,1],[79,1],[77,1],[74,3],[77,2],[81,1],[83,2],[81,1],[79,1],[78,1],[79,1],[76,3],
-  [81,2],[84,1],[89,2],[88,1],[88,1],[86,1],[84,1],[85,2],[81,1],[86,1],[77,1],[81,1],[83,1],[86,1],[79,1],[84,1],[79,1],[76,1],[72,3]];
-const BARS='C C G G G G C C F F C A D G C C'.split(' '),CHORD={C:[48,[64,67,72]],G:[43,[62,65,71]],F:[41,[60,65,69]],A:[45,[61,64,67]],D:[50,[62,65,69]]};
-const BEATS=(()=>{const b=Array.from({length:48},(_,i)=>({bar:i/3|0,beat:i%3,mel:null}));let at=0;MEL.forEach(m=>{b[at].mel=m;at+=m[1]});return b})();
-let musicOn=true,musicGain=null,musicNext=0,musicStep=0;
+/* background music: the two soundtrack pieces, played one after the other on a loop */
+const TRACKS=['music/main-title.mp3','music/alices-theme.mp3'];
+let musicOn=true,unlocked=false,trackI=Math.random()*TRACKS.length|0;
 try{musicOn=localStorage.getItem('wrMusic')!=='0'}catch(e){}
-function musicTick(){const ac=AC;if(!ac||ac.state!=='running')return;
-  if(!musicGain){musicGain=ac.createGain();musicGain.gain.value=0;musicGain.connect(ac.destination)}
-  const want=musicOn&&(state==='play'||state==='menu');musicGain.gain.setTargetAtTime(want?.55:0,ac.currentTime,.4);
-  if(musicNext<ac.currentTime)musicNext=ac.currentTime+.05;
-  while(musicNext<ac.currentTime+.25){const b=BEATS[musicStep%48],spb=60/(152*(.6+.4*slowMul)),[root,ch]=CHORD[BARS[b.bar]];
-    if(b.beat===0)tone(ac,hz(root),musicNext,spb*.9,'sine',.32,musicGain);
-    else ch.forEach(n=>tone(ac,hz(n),musicNext,spb*.35,'triangle',.05,musicGain));
-    if(b.mel){const f=hz(b.mel[0]);tone(ac,f,musicNext,spb*b.mel[1]*.95,'triangle',.15,musicGain);tone(ac,f*2,musicNext,.5,'sine',.045,musicGain)}
-    musicNext+=spb;musicStep++}}
-setInterval(musicTick,40);
-function setMusic(on){musicOn=on;$('mu').setAttribute('aria-pressed',on);try{localStorage.setItem('wrMusic',on?'1':'0')}catch(e){}}
+const bgm=new Audio(TRACKS[trackI]);bgm.preload='auto';bgm.volume=.5;bgm.preservesPitch=bgm.webkitPreservesPitch=false; // so slow time and the trip bend the pitch
+bgm.addEventListener('ended',()=>{trackI=(trackI+1)%TRACKS.length;bgm.src=TRACKS[trackI];syncMusic()});
+function syncMusic(){const want=unlocked&&musicOn&&(state==='play'||state==='menu');
+  if(want&&bgm.paused)bgm.play().catch(()=>{});else if(!want&&!bgm.paused)bgm.pause()}
+setInterval(()=>{syncMusic();if(bgm.paused)return;
+  let r=.85+.15*(slowMul-SLOW_MUL)/(1-SLOW_MUL);if(tripT>0)r*=1+.12*Math.sin(performance.now()/280); // woozy on the trip
+  bgm.playbackRate=Math.max(.5,Math.min(1.5,r))},100);
+function setMusic(on){musicOn=on;$('mu').setAttribute('aria-pressed',on);try{localStorage.setItem('wrMusic',on?'1':'0')}catch(e){}syncMusic()}
 $('mu').onclick=()=>setMusic(!musicOn);setMusic(musicOn);
-['pointerdown','keydown'].forEach(ev=>addEventListener(ev,()=>audio(),{once:true})); // browsers only allow sound after a click or key
+['pointerdown','keydown'].forEach(ev=>addEventListener(ev,()=>{audio();unlocked=true;syncMusic()},{once:true})); // browsers only allow sound after a click or key
 function startTrip(){if(tripT<=0)tripSound();tripT=TRIP_DUR}
 function clearTrip(){tripT=0;R.domElement.style.filter=R.domElement.style.transform='';R.domElement.classList.remove('trip');S.fog.color.set(0x120a14);S.background.set(0x120a14)}
 function baseSpeed(tm){if(tm<WARM)return BASE0;const u=tm-WARM; // gentle start, then a 4s kick and steady ramp
