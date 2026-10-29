@@ -56,6 +56,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
 button.alt{background:var(--ink)}
 #bar{position:fixed;left:12px;bottom:12px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;z-index:5;max-width:calc(100vw - 160px)}
 #bar button{font-size:.85rem;padding:5px 12px;margin:0}
+#bar #mu[aria-pressed="false"]{opacity:.55;text-decoration:line-through}
 #bar .st{font-size:.85rem;opacity:.85;margin-right:6px}
 #help{display:none;z-index:9}
 /* start screen: the clip fills the screen, the instructions are a storybook card in the meadow on the right */
@@ -135,14 +136,14 @@ pre{margin-top:0;text-align:left;background:var(--ink);color:#f3e3b5;padding:10p
       <button id="m1" aria-pressed="true">1 Player<small>White Rabbit</small></button>
       <button id="m2" aria-pressed="false">2 Players<small>White Rabbit &amp; Alice</small></button>
     </div>
-    <p class="story">Collect carrots and catch the rare golden pocket watch: big bonus points, and time slows for 20 seconds. Don’t touch the <i>Eat Me</i> cookies! After 7 seconds the tunnel speeds up. Three hearts each.<span class="p2"> Run side by side; the higher score wins.</span></p>
+    <p class="story">Collect carrots and catch the rare golden pocket watch: big bonus points, and time slows for 20 seconds. Jump for the very rare <i>Drink Me</i> bottle for an extra heart, and don’t touch the <i>Eat Me</i> cookies! After 7 seconds the tunnel speeds up. Three hearts each.<span class="p2"> Run side by side; the higher score wins.</span></p>
     <table class="ctl">
       <tr><th></th><th>White Rabbit</th><th class="p2">Alice</th></tr>
       <tr><td>Move</td><td>hold <kbd>A</kbd> <kbd>D</kbd><span class="k1"> or <kbd>←</kbd> <kbd>→</kbd></span></td><td class="p2">hold <kbd>←</kbd> <kbd>→</kbd></td></tr>
       <tr><td>Jump</td><td><kbd>W</kbd><span class="k1"> or <kbd>↑</kbd></span></td><td class="p2"><kbd>↑</kbd></td></tr>
       <tr><td>Duck</td><td>hold <kbd>S</kbd><span class="k1"> or <kbd>↓</kbd></span></td><td class="p2">hold <kbd>↓</kbd></td></tr>
     </table>
-    <p class="note"><kbd>Space</kbd> pauses. micro:bit: tilt to move, A jumps, hold B to duck, A+B pauses.</p>
+    <p class="note"><kbd>Space</kbd> pauses, <kbd>M</kbd> mutes the music. micro:bit: tilt to move, A jumps, hold B to duck, A+B pauses.</p>
     <div class="mb">
       <div class="row p1"><button id="c1">Connect Player 1 micro:bit (White Rabbit)</button><span class="st" id="s1m">Not connected</span></div>
       <div class="row p2"><button id="c2">Connect Player 2 micro:bit (Alice)</button><span class="st" id="s2m">Not connected</span></div>
@@ -209,6 +210,7 @@ while True:
   <button id="cb1">P1 micro:bit</button><span class="st" id="s1b"></span>
   <button id="cb2" class="p2">P2 micro:bit</button><span class="st p2" id="s2b"></span>
   <button id="hb" class="alt">micro:bit code</button>
+  <button id="mu" class="alt" aria-pressed="true">♪ Music</button>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -408,10 +410,33 @@ function mkSeg(zc){
 const ents=[],ROCK=M(0x7d8076,{flatShading:true}),MOSS=M(0x4f8a3a,{flatShading:true}),CARR=M(0xff8a1f,{emissive:0x7a2c00,emissiveIntensity:.5}),LEAF=M(0x3fae3a);
 const DG=new THREE.DodecahedronGeometry(1,0);
 function mkRock(){const g=new THREE.Group();mk(DG,ROCK,g,0,.38,0,.85,.52,.72);mk(DG,MOSS,g,.1,.72,0,.4,.2,.4);mk(DG,MOSS,g,-.4,.55,.2,.22,.15,.22);return g}
-function mkRoot(){const g=new THREE.Group();const b=mk(new THREE.CylinderGeometry(.28,.34,2.3,7),ROOT,g,0,2.0,0);b.rotation.z=Math.PI/2;
-  [-.95,.95].forEach(x=>mk(new THREE.CylinderGeometry(.22,.3,5,6),ROOT,g,x,4.3,0));
-  for(let i=0;i<4;i++){const f=mk(new THREE.ConeGeometry(.05,.45,4),ROOT,g,-.8+i*.53,1.5,0);f.rotation.z=Math.PI}
-  mk(SP,LEAF,g,-.5,2.3,.1,.2,.12,.2);mk(SP,LEAF,g,.6,2.3,-.1,.2,.12,.2);return g}
+/* the little glass table from the hall, golden key on top: duck to run underneath */
+const GLASS=new THREE.MeshStandardMaterial({color:0xcff0ff,transparent:true,opacity:.42,roughness:.05,metalness:.1,emissive:0x1d4a5a,depthWrite:false});
+function mkTable(){const g=new THREE.Group(),top=new THREE.Mesh(new THREE.CylinderGeometry(1.55,1.55,.09,40),GLASS);top.position.y=1.9;g.add(top);
+  const rim=mk(new THREE.TorusGeometry(1.55,.055,8,48),GOLD,g,0,1.9,0);rim.rotation.x=Math.PI/2;
+  const apron=mk(new THREE.TorusGeometry(1.45,.03,6,48),GOLD,g,0,1.78,0);apron.rotation.x=Math.PI/2;
+  [-1,1].forEach(sx=>[-1,1].forEach(sz=>{const lg=new THREE.Group();lg.position.set(sx*1.42,0,sz*.5);g.add(lg);
+    const l=mk(new THREE.CylinderGeometry(.045,.035,1.8,8),GOLD,lg,0,.95,0);l.rotation.z=sx*.06;
+    const c=mk(new THREE.TorusGeometry(.09,.025,6,12,Math.PI*1.5),GOLD,lg,sx*.08,.09,0);c.rotation.y=Math.PI/2}));
+  const key=new THREE.Group();key.position.set(.2,1.97,.1);key.rotation.set(Math.PI/2,0,.5);g.add(key); // the tiny golden key
+  mk(new THREE.CylinderGeometry(.03,.03,.7,8),GOLD,key,0,0,0);
+  const bow=mk(new THREE.TorusGeometry(.1,.03,6,14),GOLD,key,0,.42,0);
+  mk(new THREE.BoxGeometry(.12,.05,.04),GOLD,key,.07,-.3,0);mk(new THREE.BoxGeometry(.08,.05,.04),GOLD,key,.05,-.2,0);
+  return g}
+/* "Drink Me" bottle: a rare extra heart, floating high over a rock so you have to jump for it */
+const DRINK_TEX=(()=>{const c=document.createElement('canvas');c.width=128;c.height=64;const g=c.getContext('2d');
+  g.fillStyle='#fff6e0';g.fillRect(0,0,128,64);g.strokeStyle='#7d3a20';g.lineWidth=3;g.strokeRect(3,3,122,58);
+  g.fillStyle='#5a1a14';g.font='bold 24px Georgia';g.textAlign='center';g.textBaseline='middle';g.fillText('DRINK',64,22);g.fillText('ME',64,46);
+  return new THREE.CanvasTexture(c)})();
+function mkElixir(){const g=new THREE.Group(),b=new THREE.Group();b.position.y=2.45;g.add(b);
+  const glass=new THREE.MeshStandardMaterial({color:0xdff6ff,transparent:true,opacity:.35,roughness:.05,depthWrite:false});
+  mk(SP,M(0x8a5cff,{emissive:0x5a2ad0,emissiveIntensity:.9}),b,0,-.05,0,.25,.24,.25);         // the potion
+  mk(SP,glass,b,0,0,0,.33,.33,.33);
+  mk(new THREE.CylinderGeometry(.08,.11,.3,12),glass,b,0,.4,0);
+  mk(new THREE.CylinderGeometry(.09,.08,.13,10),M(0xb07a45),b,0,.6,0);                         // cork
+  const tag=mk(new THREE.PlaneGeometry(.42,.21),new THREE.MeshBasicMaterial({map:DRINK_TEX,side:THREE.DoubleSide}),b,0,.12,.34);tag.rotation.z=-.08;
+  const h=new THREE.Mesh(new THREE.SphereGeometry(.75,12,8),new THREE.MeshBasicMaterial({color:0xb88aff,transparent:true,opacity:.2,depthWrite:false}));h.position.y=2.5;g.add(h);
+  return g}
 function mkCarrot(){const g=new THREE.Group(),c=mk(new THREE.ConeGeometry(.17,.75,8),CARR,g,0,1.0,0);c.rotation.z=Math.PI;
   for(let i=0;i<3;i++){const l=mk(new THREE.ConeGeometry(.05,.3,4),LEAF,g,(i-1)*.07,1.45,0);l.rotation.z=(i-1)*.4}g.rotation.z=.25;return g}
 function mkWatch(){const g=new THREE.Group(),w=watch(.5);w.position.y=1.2;g.add(w);
@@ -432,10 +457,10 @@ const CAT_PNG='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASQAAAClCAYAAAD1YoA
 const CAT_TEX=new THREE.TextureLoader().load(CAT_PNG);
 function mkCat(){const m=new THREE.SpriteMaterial({map:CAT_TEX,transparent:true,opacity:0,depthWrite:false,fog:false}),sp=new THREE.Sprite(m);
   sp.scale.set(3.6,2.03,1);sp.position.y=1.1;return {g:sp,mats:[m]}}
-const CAT_DUR=1.8;let nextCatAt=30; // one rare surprise: the next cat comes 35-65 s after the last
-function addEnt(k,x,z){const m={rock:mkRock,root:mkRoot,carrot:mkCarrot,watch:mkWatch,cookie:mkCookie}[k]();m.position.set(x,0,z);S.add(m);
+const CAT_DUR=1.8;let nextCatAt=30; // a little surprise: one rock, every 18-32 s
+function addEnt(k,x,z){const m={rock:mkRock,root:mkTable,carrot:mkCarrot,watch:mkWatch,cookie:mkCookie,elixir:mkElixir}[k]();m.position.set(x,0,z);S.add(m);
   const e={k,m,hitBy:{}};
-  if(k==='rock'&&state==='play'&&time>=nextCatAt){nextCatAt=time+35+Math.random()*30;e.catT=-1;e.rockMats=[];m.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.transparent=true;e.rockMats.push(o.material)}})}
+  if(k==='rock'&&state==='play'&&time>=nextCatAt){nextCatAt=time+18+Math.random()*14;e.catT=-1;e.rockMats=[];m.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.transparent=true;e.rockMats.push(o.material)}})}
   ents.push(e)}
 function catFade(e,dt){ // the rock dissolves into the grinning cat and back
   if(e.catT<0){if(e.m.position.z>-28+Math.random()*8)e.catT=0;else return}
@@ -447,13 +472,14 @@ function catFade(e,dt){ // the rock dissolves into the grinning cat and back
 const WATCH_CHANCE=.08; // share of carrot trails that hide a pocket watch
 function spawnRow(){
   const type=Math.random()<.5?'rock':'root',n=Math.random()<.35?2:1,xs=[];
-  for(let k=0;k<20&&xs.length<n;k++){const x=MINX+.4+Math.random()*(MAXX-MINX-.8);if(xs.every(o=>Math.abs(o-x)>2.6))xs.push(x)}
+  for(let k=0;k<20&&xs.length<n;k++){const x=MINX+.4+Math.random()*(MAXX-MINX-.8);if(xs.every(o=>Math.abs(o-x)>(type==='root'?3.3:2.6)))xs.push(x)}
   xs.forEach(x=>addEnt(type,x,-110));
   const gap=18+Math.random()*10;nextSp=gap;
   if(Math.random()<.85){const cx=MINX+.5+Math.random()*(MAXX-MINX-1),slope=(Math.random()-.5)*1.2,wk=slowT<=0&&!ents.some(e=>e.k==='watch')&&Math.random()<WATCH_CHANCE?2:-1;
     for(let k=0;k<5;k++)addEnt(k===wk?'watch':'carrot',clampX(cx+(k-2)*slope),-110-gap*.5+(k-2)*2.2)}
+  if(type==='rock'&&time>WARM&&players.some(p=>p.alive&&p.lives<MAX_LIVES)&&!ents.some(e=>e.k==='elixir')&&Math.random()<ELIXIR_CHANCE)addEnt('elixir',xs[0],-110);
   if(time>WARM&&tripT<=0&&Math.random()<COOKIE_CHANCE)addEnt('cookie',MINX+.5+Math.random()*(MAXX-MINX-1),-110-gap*.8)}
-const COOKIE_CHANCE=.16;
+const COOKIE_CHANCE=.16,ELIXIR_CHANCE=.05,MAX_LIVES=5; // the elixir is rarer than the watch and needs a jump
 
 /* ---------- players ---------- */
 const KEYS_SOLO={l:['KeyA','ArrowLeft'],r:['KeyD','ArrowRight'],j:['KeyW','ArrowUp'],d:['KeyS','ArrowDown']};
@@ -474,8 +500,8 @@ function qHeart(on){const h=on?'#d11f2a':'#3a2626',c=on?'#f2c230':'#5a4a40',o=on
   return '<svg class="qh" viewBox="0 0 32 34" aria-hidden="true"><path d="M7 11 L8 3 L12.5 7.5 L16 2 L19.5 7.5 L24 3 L25 11Z" fill="'+c+'" stroke="'+o+'" stroke-width="1.2"/>'+
     '<circle cx="16" cy="3" r="1.4" fill="'+h+'"/><path d="M16 33 C4 24 2 17 6 13 C9.5 9.5 14 11 16 15 C18 11 22.5 9.5 26 13 C30 17 28 24 16 33Z" fill="'+h+'" stroke="'+o+'" stroke-width="1.8"/>'+
     (on?'<path d="M9 15 C10 13 12 13 13 14" stroke="#ff9a9a" stroke-width="1.6" fill="none" stroke-linecap="round"/>':'')+'</svg>'}
-function hearts(p){const el=p.hud.querySelector('.hp');el.innerHTML=[0,1,2].map(i=>qHeart(i<p.lives)).join('');el.setAttribute('aria-label',p.lives+' hearts left')}
-function reset(){ents.splice(0).forEach(e=>S.remove(e.m));clearTrip();time=0;nextCatAt=20+Math.random()*20;slowT=0;slowMul=1;shake=0;nextSp=20;dist=0;
+function hearts(p){const el=p.hud.querySelector('.hp');el.innerHTML=Array.from({length:Math.max(3,p.lives)},(_,i)=>qHeart(i<p.lives)).join('');el.setAttribute('aria-label',p.lives+' hearts left')}
+function reset(){ents.splice(0).forEach(e=>S.remove(e.m));clearTrip();time=0;nextCatAt=10+Math.random()*10;slowT=0;slowMul=1;shake=0;nextSp=20;dist=0;
   players.forEach((p,i)=>{p.on=i<mode;p.alive=p.on;p.keys=mode===1?KEYS_SOLO:i?KEYS_P2:KEYS_P1;
     p.x=mode===1?0:i?1.2:-1.2;p.vx=p.lean=p.y=p.vy=p.duck=p.inv=p.score=p.carrots=0;p.onGround=true;p.lives=3;
     p.rig.g.visible=p.on;p.rig.g.position.set(p.x,0,0);p.hud.style.display=p.on?'block':'none';p.hud.classList.remove('out');hearts(p)});
@@ -512,6 +538,7 @@ addEventListener('keydown',e=>{const k=e.code;
   if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(k))e.preventDefault();
   keys.add(k);if(e.repeat)return;
   if(k==='Space'){togglePause();return}
+  if(k==='KeyM'){setMusic(!musicOn);return}
   if((state==='menu'||state==='over')&&$('help').style.display!=='flex'&&k==='Enter'){start();return}
   players.forEach(p=>{if(!p.on)return;if(p.keys.j.includes(k))jump(p);else if(p.keys.d.includes(k))duckStart(p)})});
 addEventListener('keyup',e=>keys.delete(e.code));
@@ -577,6 +604,33 @@ function tripSound(){const ac=audio();if(!ac)return;const t0=ac.currentTime,end=
     o.frequency.value=WT[(k*3+(k>>2))%WT.length]*(k%5===4?.5:1);g.gain.setValueAtTime(0,at);g.gain.linearRampToValueAtTime(.25,at+.01);g.gain.exponentialRampToValueAtTime(.001,at+.5);
     o.connect(g);g.connect(out);o.start(at);o.stop(at+.55)}
   [sw,lfo].forEach(o=>{o.start(t0);o.stop(end+.1)})}
+function tone(ac,f,t0,dur,type,vol,dest){const o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.value=f;
+  if(tripT>0)o.detune.value=(Math.random()-.5)*90; // everything goes woozy on the trip
+  g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(vol,t0+.012);g.gain.exponentialRampToValueAtTime(.0008,t0+dur);
+  o.connect(g);g.connect(dest);o.start(t0);o.stop(t0+dur+.05)}
+const hz=n=>440*Math.pow(2,(n-69)/12);
+function chime(){const ac=audio();if(!ac)return;const t0=ac.currentTime;[72,76,79,84,88].forEach((n,i)=>tone(ac,hz(n),t0+i*.07,.5,'sine',.18,ac.destination))}
+/* background music: an original light waltz in the spirit of the film's score, played by the browser.
+   16 bars of oom-pah-pah with a music-box tune on top; it slows down with slow time */
+const MEL=[[76,2],[79,1],[84,2],[83,1],[81,1],[79,1],[77,1],[74,3],[77,2],[81,1],[83,2],[81,1],[79,1],[78,1],[79,1],[76,3],
+  [81,2],[84,1],[89,2],[88,1],[88,1],[86,1],[84,1],[85,2],[81,1],[86,1],[77,1],[81,1],[83,1],[86,1],[79,1],[84,1],[79,1],[76,1],[72,3]];
+const BARS='C C G G G G C C F F C A D G C C'.split(' '),CHORD={C:[48,[64,67,72]],G:[43,[62,65,71]],F:[41,[60,65,69]],A:[45,[61,64,67]],D:[50,[62,65,69]]};
+const BEATS=(()=>{const b=Array.from({length:48},(_,i)=>({bar:i/3|0,beat:i%3,mel:null}));let at=0;MEL.forEach(m=>{b[at].mel=m;at+=m[1]});return b})();
+let musicOn=true,musicGain=null,musicNext=0,musicStep=0;
+try{musicOn=localStorage.getItem('wrMusic')!=='0'}catch(e){}
+function musicTick(){const ac=AC;if(!ac||ac.state!=='running')return;
+  if(!musicGain){musicGain=ac.createGain();musicGain.gain.value=0;musicGain.connect(ac.destination)}
+  const want=musicOn&&(state==='play'||state==='menu');musicGain.gain.setTargetAtTime(want?.55:0,ac.currentTime,.4);
+  if(musicNext<ac.currentTime)musicNext=ac.currentTime+.05;
+  while(musicNext<ac.currentTime+.25){const b=BEATS[musicStep%48],spb=60/(152*(.6+.4*slowMul)),[root,ch]=CHORD[BARS[b.bar]];
+    if(b.beat===0)tone(ac,hz(root),musicNext,spb*.9,'sine',.32,musicGain);
+    else ch.forEach(n=>tone(ac,hz(n),musicNext,spb*.35,'triangle',.05,musicGain));
+    if(b.mel){const f=hz(b.mel[0]);tone(ac,f,musicNext,spb*b.mel[1]*.95,'triangle',.15,musicGain);tone(ac,f*2,musicNext,.5,'sine',.045,musicGain)}
+    musicNext+=spb;musicStep++}}
+setInterval(musicTick,40);
+function setMusic(on){musicOn=on;$('mu').setAttribute('aria-pressed',on);try{localStorage.setItem('wrMusic',on?'1':'0')}catch(e){}}
+$('mu').onclick=()=>setMusic(!musicOn);setMusic(musicOn);
+['pointerdown','keydown'].forEach(ev=>addEventListener(ev,()=>audio(),{once:true})); // browsers only allow sound after a click or key
 function startTrip(){if(tripT<=0)tripSound();tripT=TRIP_DUR}
 function clearTrip(){tripT=0;R.domElement.style.filter=R.domElement.style.transform='';R.domElement.classList.remove('trip');S.fog.color.set(0x120a14);S.background.set(0x120a14)}
 function baseSpeed(tm){if(tm<WARM)return BASE0;const u=tm-WARM; // gentle start, then a 4s kick and steady ramp
@@ -620,12 +674,14 @@ function frame(now){requestAnimationFrame(frame);
   for(let i=ents.length-1;i>=0;i--){const e=ents[i],m=e.m;m.position.z+=dz;const z=m.position.z;
     if(e.k==='carrot'||e.k==='watch')m.rotation.y+=dt*3;
     else if(e.k==='cookie')m.rotation.y=Math.sin(t*2+i)*.35;
+    else if(e.k==='elixir'){m.rotation.y=Math.sin(t*1.6)*.5;m.children[0].position.y=2.45+Math.sin(t*3)*.12}
     else if(e.catT!==undefined&&e.catT<1e9&&play)catFade(e,dt);
     if(play&&!e.dead){const near=w=>z>-w&&z-dz<w; // swept: did it pass the players this frame?
       for(const p of players){if(!p.alive||e.dead)continue;const dx=Math.abs(m.position.x-p.x);
         if(e.k==='rock'){if(dx<1.1&&near(.9)&&p.y<.8)hit(p,e)}            // rock ~1.7 wide + runner
         else if(e.k==='root'){if(dx<1.35&&near(.7)&&p.duck<.85)hit(p,e)} // root bar ~2.3 wide + runner
         else if(e.k==='cookie'){if(dx<1&&near(.8)){e.dead=true;S.remove(m);startTrip()}}
+        else if(e.k==='elixir'){if(dx<1&&near(.9)&&p.y>1.05){e.dead=true;S.remove(m);p.lives=Math.min(MAX_LIVES,p.lives+1);p.score+=100;hearts(p);chime()}}
         else if(dx<.95&&near(.9)){e.dead=true;S.remove(m);
           if(e.k==='carrot'){p.carrots++;p.score+=25}else{slowT=SLOW_DUR;p.score+=150}}}}
     if(z>12||e.dead&&e.k!=='rock'&&e.k!=='root'){S.remove(m);ents.splice(i,1)}}
