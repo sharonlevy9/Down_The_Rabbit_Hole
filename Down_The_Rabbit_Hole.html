@@ -3,82 +3,114 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Down the Rabbit Hole – White Rabbit Runner</title>
+<title>Down the Rabbit Hole</title>
 <link href="https://fonts.googleapis.com/css2?family=Fondamento&display=swap" rel="stylesheet">
 <style>
-:root{--ink:#2a1608;--paper:#f6e6c0;--red:#d9261c;--gold:#e6b422}
+/* Colours are taken from the clip: sky, bush green, path brown, coat red, watch gold, Alice blue. */
+:root{--ink:#2a1608;--paper:#f6e6c0;--red:#d9261c;--gold:#e6b422;
+  --sky:#7aa8db;--bush:#2f6b2a;--grass:#8cbf4b;--path:#7d3a20;--coat:#c63a2b;--watch:#e9b43c;--cream:#fbf3dc;--alice:#5d9be0;--alice-d:#1f4f8f}
 html,body{margin:0;height:100%;overflow:hidden;background:#120a14;color:var(--paper);font-family:'Fondamento',Georgia,'Palatino Linotype',serif}
 canvas{display:block}
 #hud{position:fixed;inset:0;pointer-events:none;display:none}
 #hud>div{position:absolute;text-shadow:0 2px 6px #000}
-#sc{top:14px;left:18px;font-size:2rem}
-#sc small{display:block;font-size:.95rem;opacity:.8}
-#hp{top:12px;right:18px;font-size:2.1rem;letter-spacing:4px;color:var(--red)}
-#hp .x{color:#4a2a2a}
+/* one panel per player: rabbit top-left, Alice top-right */
+.pp{top:12px;min-width:150px;padding:8px 14px 10px;border-radius:14px;background:#120a1499;border:2px solid var(--coat)}
+#p1h{left:14px}
+#p2h{right:14px;text-align:right;border-color:var(--alice)}
+.pp .nm{font-size:1.05rem;color:#ffd9c9}
+#p2h .nm{color:#d6e8ff}
+.pp .nm i{font-style:normal;font-size:.75rem;opacity:.7;margin:0 4px}
+.pp .sc{font-size:1.9rem;line-height:1.1}
+.pp .hp{font-size:1.5rem;letter-spacing:3px;color:var(--red)}
+.pp .hp .x{color:#4a2a2a}
+.pp small{display:block;font-size:.85rem;opacity:.8}
+.pp.out{opacity:.45}
+.pp.out .sc::after{content:' · out';font-size:.9rem}
 #mx{top:14px;left:50%;transform:translateX(-50%);font-size:1.5rem;color:var(--gold);text-align:center}
 #sb{width:150px;height:6px;margin:4px auto 0;background:#0006;border-radius:3px;overflow:hidden}
 #sb i{display:block;height:100%;background:var(--gold)}
-#ph{top:52px;left:50%;transform:translateX(-50%);font-size:1.05rem;opacity:.85}
+#ph{top:56px;left:50%;transform:translateX(-50%);font-size:1.05rem;opacity:.85}
+#dv{bottom:16px;right:18px;font-size:1rem;opacity:.75}
 #pause{display:none;z-index:8}
 #pause h1{letter-spacing:6px}
-#tw{bottom:16px;left:50%;width:160px;height:8px;margin-left:-80px;background:#0006;border-radius:4px;display:none}
-#tb{position:absolute;top:-3px;left:74px;width:12px;height:14px;border-radius:50%;background:var(--gold)}
 #flash{position:fixed;inset:0;background:#d9261c;opacity:0;pointer-events:none;transition:opacity .35s}
 .ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#120a14b8}
-.card{background:var(--paper);color:var(--ink);border:3px solid var(--gold);border-radius:18px;padding:26px 34px;max-width:min(540px,90vw);max-height:86vh;overflow:auto;text-align:center;box-shadow:0 0 0 6px var(--ink),0 20px 60px #000a}
-.card h1{margin:0 0 4px;font-size:2.4rem;line-height:1.1}
+.card{background:var(--paper);color:var(--ink);border:3px solid var(--gold);border-radius:18px;padding:26px 34px;max-width:min(540px,90vw);max-height:86vh;overflow:auto;text-align:center;box-shadow:0 0 0 6px var(--ink),0 20px 60px #000a;box-sizing:border-box}
+.card h1{margin:0 0 4px;font-size:2.4rem;line-height:1.1;text-wrap:balance}
 .card p{margin:8px 0;line-height:1.45}
 .card kbd{background:var(--ink);color:var(--paper);border-radius:5px;padding:1px 7px;font-family:inherit}
 button{font:inherit;font-size:1.15rem;background:var(--red);color:var(--paper);border:2px solid var(--ink);border-radius:999px;padding:9px 26px;cursor:pointer;margin:6px 4px}
 button:hover{background:#b81c13}
 button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+button:disabled{opacity:.4;cursor:not-allowed}
 button.alt{background:var(--ink)}
-#bar{position:fixed;left:12px;bottom:12px;display:flex;gap:6px;align-items:center;z-index:5}
-#bar button{font-size:.9rem;padding:6px 14px;margin:0}
-#conn{font-size:.9rem;opacity:.85}
+#bar{position:fixed;left:12px;bottom:12px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;z-index:5;max-width:calc(100vw - 160px)}
+#bar button{font-size:.85rem;padding:5px 12px;margin:0}
+#bar .st{font-size:.85rem;opacity:.85;margin-right:6px}
 #help{display:none;z-index:9}
-/* intro screen: the clip fills the screen, the instructions are a storybook card in the meadow on the right.
-   Colours are taken from the clip: sky, bush green, path brown, coat red, watch gold. */
-:root{--sky:#7aa8db;--bush:#2f6b2a;--grass:#8cbf4b;--path:#7d3a20;--coat:#c63a2b;--watch:#e9b43c;--cream:#fbf3dc}
+/* start screen: the clip fills the screen, the instructions are a storybook card in the meadow on the right */
 .ov.intro{display:block;padding:0;background:#2c5a2a;overflow:hidden}
 .intro .bg{position:absolute;inset:-60px;background:url(rabbit-late.gif) center/cover;filter:blur(28px) saturate(1.15) brightness(.75)}
 #gif{position:absolute;left:0;top:0;height:100%;width:auto;max-width:100%;object-fit:contain;object-position:left center;-webkit-mask-image:linear-gradient(90deg,#000 93%,transparent);mask-image:linear-gradient(90deg,#000 93%,transparent)}
 .intro .shade{position:absolute;inset:0;background:linear-gradient(90deg,transparent 55%,#1d3b1a66 80%)}
-.intro .card{position:absolute;right:3vw;top:50%;transform:translateY(-50%);width:min(390px,90vw);max-height:94vh;box-sizing:border-box;
-  padding:20px 24px 18px;background:var(--cream);color:#3a2414;border:3px solid var(--watch);border-radius:22px 22px 22px 22px;
-  box-shadow:0 0 0 5px var(--bush),0 18px 50px #0008;text-align:center}
-.intro h1{color:var(--coat);font-size:2.15rem;margin:0;text-shadow:1px 1px 0 #fff8,2px 2px 0 #e9b43c66}
-.intro .sub{margin:2px 0 8px;color:var(--bush);font-style:italic;font-size:1.05rem}
-.intro .story{font-size:.92rem;margin:0 0 10px}
-.ctl{width:100%;border-collapse:collapse;font-size:.88rem;margin:4px 0 10px}
-.ctl th{color:var(--bush);font-weight:normal;font-variant:small-caps;letter-spacing:1px;font-size:.95rem;padding:2px 4px;border-bottom:2px solid var(--grass)}
-.ctl td{padding:4px;border-bottom:1px dashed #7d3a2033}.ctl td:first-child{text-align:left;color:var(--path);font-weight:bold}
-.ctl kbd{background:var(--path);color:var(--cream);font-size:.8rem;padding:0 5px}
-.mb{background:#e7f0cf;border:2px solid var(--grass);border-radius:14px;padding:8px 12px;margin:0 0 12px;text-align:left;font-size:.9rem}
-.mb b{color:var(--bush)}.mb ol{margin:4px 0;padding-left:20px}.mb li{margin:3px 0}
+.intro .card{position:absolute;right:3vw;top:50%;transform:translateY(-50%);width:min(420px,92vw);max-height:96vh;
+  padding:16px 20px 14px;background:var(--cream);color:#3a2414;border:3px solid var(--watch);border-radius:22px;
+  box-shadow:0 0 0 5px var(--bush),0 18px 50px #0008}
+.intro h1{color:var(--coat);font-size:2rem;margin:0;text-shadow:1px 1px 0 #fff8,2px 2px 0 #e9b43c66}
+.intro .sub{margin:0 0 8px;color:var(--bush);font-style:italic;font-size:1rem}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 8px}
+.intro .modes button{margin:0;font-size:.92rem;padding:7px 8px;border-radius:14px;line-height:1.2;background:#fff6df;color:var(--path);border:2px solid #d8c49a}
+.intro .modes button small{display:block;font-size:.75rem;opacity:.8}
+.intro .modes button[aria-pressed="true"]{background:var(--coat);color:var(--cream);border-color:var(--watch);box-shadow:0 3px 0 var(--path)}
+.intro .story{font-size:.86rem;margin:0 0 6px;line-height:1.35}
+.ctl{width:100%;border-collapse:collapse;font-size:.84rem;margin:2px 0 4px}
+.ctl th{color:var(--bush);font-weight:normal;font-variant:small-caps;letter-spacing:1px;font-size:.92rem;padding:2px 4px;border-bottom:2px solid var(--grass)}
+.ctl th.p2,.ctl td.p2{color:var(--alice-d)}
+.ctl td{padding:3px 4px;border-bottom:1px dashed #7d3a2033}.ctl td:first-child{text-align:left;color:var(--path);font-weight:bold}
+.ctl kbd{background:var(--path);color:var(--cream);font-size:.78rem;padding:0 5px}
+.ctl td.p2 kbd{background:var(--alice-d)}
+body.solo .p2{display:none}
+body:not(.solo) .k1{display:none}
+.note{font-size:.78rem;margin:2px 0 8px;opacity:.85}
+.mb{background:#e7f0cf;border:2px solid var(--grass);border-radius:14px;padding:8px 10px;margin:0 0 10px;text-align:left;font-size:.86rem;display:grid;gap:6px}
+.mb .row{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center}
+.mb .row button{margin:0;font-size:.8rem;padding:4px 10px;white-space:nowrap}
+.mb .row.p2 button{background:var(--alice-d);border-color:var(--sky)}
+.mb .st{font-size:.8rem;color:var(--path);min-width:0}
+.mb .st::before{content:'';display:inline-block;width:9px;height:9px;border-radius:50%;background:#b9a98a;margin-right:5px;vertical-align:middle}
+.mb .st.ok::before{background:#3aa548;box-shadow:0 0 6px #3aa548}
+.mb .st.wait::before{background:var(--watch)}
+.mb .foot{font-size:.78rem}
+body.solo .mb .row.p2{display:grid}
+body.solo .mb .row.p2 button{opacity:.4;cursor:not-allowed}
 .intro button{background:var(--coat);border-color:var(--watch);color:var(--cream)}
 .intro button:hover{background:#a92d20}
 .intro button.alt{background:var(--sky);border-color:var(--bush);color:#13284a}
-.intro #go{font-size:1.3rem;padding:10px 34px;box-shadow:0 4px 0 var(--path)}
-button.sm{font-size:.82rem;padding:3px 11px;margin:2px 2px}
-#conn2{margin:4px 0 0;font-size:.85rem;color:var(--path)}
-.card .hint{display:block;font-size:.8rem;opacity:.7;margin-top:4px}
+.intro button.sm{font-size:.78rem;padding:2px 10px;margin:0 0 0 4px}
+.intro #go{font-size:1.25rem;padding:9px 34px;margin:0;box-shadow:0 4px 0 var(--path)}
+.card .hint{display:block;font-size:.78rem;opacity:.7;margin-top:6px}
 body.menu #bar,body.menu canvas{display:none}
 @media (max-width:760px),(max-aspect-ratio:1/1){.ov.intro{overflow:auto}.intro .bg,.intro .shade{position:fixed}
   #gif{position:relative;width:100%;height:auto;max-height:none;-webkit-mask-image:none;mask-image:none}
   .intro .card{position:relative;right:auto;top:auto;transform:none;margin:10px auto 20px;max-height:none}}
+/* game over */
+.res{width:100%;border-collapse:collapse;margin:10px 0;font-size:1.05rem}
+.res td{padding:5px 8px;border-bottom:1px dashed #2a160833}
+.res td:last-child{text-align:right;font-weight:bold}
+.res tr.win td{color:var(--coat)}
 button.cp{display:block;margin:6px 0 4px auto;font-size:.85rem;padding:4px 14px;background:var(--ink)}
 pre{margin-top:0;text-align:left;background:var(--ink);color:#f3e3b5;padding:10px 12px;border-radius:8px;font-size:.78rem;overflow:auto;white-space:pre}
 .card h3{margin:14px 0 2px}
+@media (prefers-reduced-motion:reduce){#flash{transition:none}}
 </style>
 </head>
-<body class="menu">
+<body class="menu solo">
 <div id="hud">
-  <div id="sc"><span id="scv">0</span><small id="dv">0 m · 0 carrots</small></div>
+  <div class="pp" id="p1h"><div class="nm">White Rabbit<i>P1</i></div><div class="sc">0</div><div class="hp"></div><small>0 carrots</small></div>
+  <div class="pp" id="p2h"><div class="nm"><i>P2</i>Alice</div><div class="sc">0</div><div class="hp"></div><small>0 carrots</small></div>
   <div id="mx"></div>
   <div id="ph"></div>
-  <div id="hp"></div>
-  <div id="tw"><div id="tb"></div></div>
+  <div id="dv">0 m</div>
 </div>
 <div id="flash"></div>
 
@@ -88,38 +120,44 @@ pre{margin-top:0;text-align:left;background:var(--ink);color:#f3e3b5;padding:10p
   <div class="shade"></div>
   <div class="card">
     <h1>Down the Rabbit Hole</h1>
-    <p class="sub">Help the White Rabbit hurry through the burrow!</p>
-    <p class="story">Collect carrots and catch the rare golden pocket watch to slow time for 20 seconds. After 15 seconds it gets faster. Don’t lose all three hearts.</p>
+    <p class="sub">Hurry through the burrow, you’re late!</p>
+    <div class="modes" role="group" aria-label="Choose a mode">
+      <button id="m1" aria-pressed="true">1 Player<small>White Rabbit</small></button>
+      <button id="m2" aria-pressed="false">2 Players<small>White Rabbit &amp; Alice</small></button>
+    </div>
+    <p class="story">Collect carrots and catch the rare golden pocket watch: big bonus points, and time slows for 20 seconds. After 7 seconds the tunnel speeds up. Three hearts each.<span class="p2"> Run side by side; the higher score wins.</span></p>
     <table class="ctl">
-      <tr><th></th><th>Keyboard</th><th>micro:bit</th></tr>
-      <tr><td>Move</td><td>hold <kbd>←</kbd> <kbd>→</kbd> / <kbd>A</kbd> <kbd>D</kbd></td><td>tilt</td></tr>
-      <tr><td>Jump</td><td><kbd>↑</kbd> / <kbd>W</kbd></td><td>button A</td></tr>
-      <tr><td>Duck</td><td>hold <kbd>↓</kbd> / <kbd>S</kbd></td><td>hold B</td></tr>
-      <tr><td>Pause</td><td><kbd>Space</kbd></td><td>A + B</td></tr>
+      <tr><th></th><th>White Rabbit</th><th class="p2">Alice</th></tr>
+      <tr><td>Move</td><td>hold <kbd>A</kbd> <kbd>D</kbd><span class="k1"> or <kbd>←</kbd> <kbd>→</kbd></span></td><td class="p2">hold <kbd>←</kbd> <kbd>→</kbd></td></tr>
+      <tr><td>Jump</td><td><kbd>W</kbd><span class="k1"> or <kbd>↑</kbd></span></td><td class="p2"><kbd>↑</kbd></td></tr>
+      <tr><td>Duck</td><td>hold <kbd>S</kbd><span class="k1"> or <kbd>↓</kbd></span></td><td class="p2">hold <kbd>↓</kbd></td></tr>
     </table>
-    <div class="mb"><b>Play with a micro:bit</b>
-      <ol><li>Put the game code on it <button class="sm alt" id="hb2">Show code</button></li>
-        <li>Plug it in by USB, then <button class="sm" id="cb2">Connect</button></li></ol>
-      <p id="conn2">Not connected. You can also play with the keyboard.</p></div>
-    <button id="go">Start running</button>
+    <p class="note"><kbd>Space</kbd> pauses. micro:bit: tilt to move, A jumps, hold B to duck, A+B pauses.</p>
+    <div class="mb">
+      <div class="row p1"><button id="c1">Connect Player 1 micro:bit (White Rabbit)</button><span class="st" id="s1m">Not connected</span></div>
+      <div class="row p2"><button id="c2">Connect Player 2 micro:bit (Alice)</button><span class="st" id="s2m">Not connected</span></div>
+      <div class="foot">Both boards use the same code <button class="sm alt" id="hb2">Show code</button></div>
+    </div>
+    <button id="go">Start Game</button>
     <span class="hint">or press Enter / micro:bit button A</span>
   </div>
 </div>
 
 <div id="over" class="ov" style="display:none"><div class="card">
-  <h1>Too late!</h1>
+  <h1 id="ovh">Too late!</h1>
   <p id="ovt"></p>
-  <button id="again">Run again</button>
+  <table class="res" id="ovr"></table>
+  <button id="again">Run again</button><button id="tomenu" class="alt">Main menu</button>
 </div></div>
 
 <div id="pause" class="ov"><div class="card">
   <h1>PAUSED</h1>
-  <p>Press <kbd>Space</kbd> (or micro:bit <b>A+B</b>) to keep running.</p>
+  <p>Press <kbd>Space</kbd> (or <b>A+B</b> on a micro:bit) to keep running.</p>
 </div></div>
 
 <div id="help" class="ov"><div class="card">
   <h1 style="font-size:1.8rem">Flash your micro:bit</h1>
-  <p>The game reads one line per update: <b>X,BTN_A,BTN_B</b> at 115200 baud. Tilting steers the rabbit smoothly across the tunnel (a small dead zone around flat keeps it centred). Hold B to stay ducked.</p>
+  <p>The game reads one line per update: <b>X,BTN_A,BTN_B</b> at 115200 baud. For two players, put the same code on both boards.</p>
   <h3>MakeCode (makecode.microbit.org, JavaScript tab)</h3>
 <pre>serial.redirectToUSB()
 serial.setBaudRate(BaudRate.BaudRate115200)
@@ -149,14 +187,14 @@ while True:
     print("%d,%d,%d" % (x, a, b))
     sleep(30)</pre>
   <p>Tilt steers, A jumps, hold B to duck, press <b>A+B together</b> to pause.</p>
-  <p>Download the code to the micro:bit (a rabbit appears on its screen when it's running). Then click <b>Connect micro:bit</b> and pick the board. Use Chrome or Edge, and <b>close the MakeCode tab</b> (or disconnect it there) and any other serial monitor first, because only one page can use the port.</p>
+  <p>Download the code to each micro:bit (a rabbit appears on its screen when it's running). Plug both in by USB, then click <b>Connect Player 1</b> and pick the first board, and <b>Connect Player 2</b> and pick the other one. Use Chrome or Edge, and <b>close the MakeCode tab</b> (or disconnect it there) and any other serial monitor first, because only one page can use a port.</p>
   <button id="hx">Close</button>
 </div></div>
 
 <div id="bar">
-  <button id="cb">Connect micro:bit</button>
+  <button id="cb1">P1 micro:bit</button><span class="st" id="s1b"></span>
+  <button id="cb2" class="p2">P2 micro:bit</button><span class="st p2" id="s2b"></span>
   <button id="hb" class="alt">micro:bit code</button>
-  <span id="conn"></span>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -202,45 +240,117 @@ function watch(r){const g=new THREE.Group();
   const cr=new THREE.Mesh(new THREE.CylinderGeometry(r*.17,r*.17,r*.28,8),GOLD);cr.position.y=r*1.12;
   const rg=new THREE.Mesh(new THREE.TorusGeometry(r*.22,r*.05,6,12),GOLD);rg.position.y=r*1.38;
   g.add(ring,f1,f2,cr,rg);g.traverse(o=>o.castShadow=true);return g}
+const BLK=M(0x151515);
 
-/* ---------- the White Rabbit ---------- */
-const W=M(0xffffff,{roughness:1,emissive:0x333333}),PK=M(0xf4a3b8),RED=M(0xe0261b),BUR=M(0x7a1224),LAV=M(0xa9a0cf),BLK=M(0x151515);
-const CR=M(0xf7e3a6,{flatShading:true}),GL=M(0xaadddd,{metalness:.5,roughness:.3});
-const rb=new THREE.Group(),bd=new THREE.Group();rb.add(bd);rb.scale.setScalar(.8);S.add(rb);
-mk(SP,LAV,bd,0,.8,0,.5,.45,.42);                       // trousers
-mk(SP,RED,bd,0,1.25,0,.48,.5,.4);                      // coat
-mk(SP,RED,bd,0,1.0,.3,.36,.3,.25);                     // coat tails
-mk(new THREE.CylinderGeometry(.4,.3,.3,10),CR,bd,0,1.62,0); // ruffled collar
-mk(SP,W,bd,0,.8,.46,.2,.2,.2);                         // fluffy tail
-const hd=new THREE.Group();hd.position.set(0,1.95,-.02);bd.add(hd);
-mk(SP,W,hd,0,0,0,.34,.32,.34);mk(SP,W,hd,0,-.08,-.25,.2,.16,.18);
-mk(SP,M(0xb3445f),hd,0,-.03,-.42,.07,.06,.06);         // nose
-mk(SP,PK,hd,0,-.17,-.34,.05,.03,.03);                  // open mouth
-const ears=[];
-[-1,1].forEach(s=>{
-  mk(SP,M(0xf2a0b8),hd,s*.14,.07,-.28,.1,.11,.05);mk(SP,BLK,hd,s*.14,.07,-.32,.035,.04,.02);
-  const sp=mk(new THREE.TorusGeometry(.12,.012,6,16),GL,hd,s*.14,.07,-.335);
-  const br=mk(new THREE.BoxGeometry(.17,.025,.02),BLK,hd,s*.14,.21,-.3);br.rotation.z=s*.35;
-  const eg=new THREE.Group();eg.position.set(s*.12,.28,.05);hd.add(eg);eg.rotation.z=s*.15;
-  mk(SP,W,eg,0,.5,0,.1,.5,.045);mk(SP,PK,eg,0,.5,-.035,.065,.42,.03);ears.push(eg);
-  const bt=mk(new THREE.ConeGeometry(.12,.2,6),BUR,bd,s*.13,1.55,-.3);bt.rotation.z=s*Math.PI/2;
-});
-mk(new THREE.BoxGeometry(.08,.02,.02),GL,hd,0,.07,-.335);
-mk(SP,BUR,bd,0,1.55,-.3,.06,.06,.05);                  // bow-tie knot
-const arms=[],legs=[];let wpv;
-[-1,1].forEach((s,i)=>{
-  const ag=new THREE.Group();ag.position.set(s*.5,1.45,0);bd.add(ag);
-  mk(new THREE.CylinderGeometry(.09,.11,.45,8),RED,ag,0,-.22,0);mk(SP,W,ag,0,-.5,0,.12,.12,.12);arms.push(ag);
-  if(s>0){wpv=new THREE.Group();wpv.position.set(0,-.5,0);ag.add(wpv);
-    mk(new THREE.CylinderGeometry(.015,.015,.4,4),GOLD,wpv,0,-.2,0);
-    const w=watch(.38);w.position.y=-.8;w.rotation.y=Math.PI/2;wpv.add(w)}
-  const lg=new THREE.Group();lg.position.set(s*.2,.7,0);bd.add(lg);
-  mk(new THREE.CylinderGeometry(.14,.12,.55,8),LAV,lg,0,-.28,0);mk(SP,W,lg,0,-.58,-.12,.17,.1,.36);legs.push(lg);
-});
-rb.traverse(o=>{if(o.isMesh)o.receiveShadow=false});
+/* ---------- Player 1: the White Rabbit ---------- */
+function makeRabbit(){
+  const W=M(0xffffff,{roughness:1,emissive:0x333333}),PK=M(0xf4a3b8),RED=M(0xe0261b),BUR=M(0x7a1224),LAV=M(0xa9a0cf);
+  const CR=M(0xf7e3a6,{flatShading:true}),GL=M(0xaadddd,{metalness:.5,roughness:.3});
+  const g=new THREE.Group(),bd=new THREE.Group();g.add(bd);g.scale.setScalar(.8);
+  mk(SP,LAV,bd,0,.8,0,.5,.45,.42);                       // trousers
+  mk(SP,RED,bd,0,1.25,0,.48,.5,.4);                      // coat
+  mk(SP,RED,bd,0,1.0,.3,.36,.3,.25);                     // coat tails
+  mk(new THREE.CylinderGeometry(.4,.3,.3,10),CR,bd,0,1.62,0); // ruffled collar
+  mk(SP,W,bd,0,.8,.46,.2,.2,.2);                         // fluffy tail
+  const hd=new THREE.Group();hd.position.set(0,1.95,-.02);bd.add(hd);
+  mk(SP,W,hd,0,0,0,.34,.32,.34);mk(SP,W,hd,0,-.08,-.25,.2,.16,.18);
+  mk(SP,M(0xb3445f),hd,0,-.03,-.42,.07,.06,.06);         // nose
+  mk(SP,PK,hd,0,-.17,-.34,.05,.03,.03);                  // open mouth
+  const ears=[];
+  [-1,1].forEach(s=>{
+    mk(SP,M(0xf2a0b8),hd,s*.14,.07,-.28,.1,.11,.05);mk(SP,BLK,hd,s*.14,.07,-.32,.035,.04,.02);
+    mk(new THREE.TorusGeometry(.12,.012,6,16),GL,hd,s*.14,.07,-.335);
+    const br=mk(new THREE.BoxGeometry(.17,.025,.02),BLK,hd,s*.14,.21,-.3);br.rotation.z=s*.35;
+    const eg=new THREE.Group();eg.position.set(s*.12,.28,.05);hd.add(eg);eg.rotation.z=s*.15;
+    mk(SP,W,eg,0,.5,0,.1,.5,.045);mk(SP,PK,eg,0,.5,-.035,.065,.42,.03);ears.push(eg);
+    const bt=mk(new THREE.ConeGeometry(.12,.2,6),BUR,bd,s*.13,1.55,-.3);bt.rotation.z=s*Math.PI/2;
+  });
+  mk(new THREE.BoxGeometry(.08,.02,.02),GL,hd,0,.07,-.335);
+  mk(SP,BUR,bd,0,1.55,-.3,.06,.06,.05);                  // bow-tie knot
+  const arms=[],legs=[];let wpv;
+  [-1,1].forEach(s=>{
+    const ag=new THREE.Group();ag.position.set(s*.5,1.45,0);bd.add(ag);
+    mk(new THREE.CylinderGeometry(.09,.11,.45,8),RED,ag,0,-.22,0);mk(SP,W,ag,0,-.5,0,.12,.12,.12);arms.push(ag);
+    if(s>0){wpv=new THREE.Group();wpv.position.set(0,-.5,0);ag.add(wpv);
+      mk(new THREE.CylinderGeometry(.015,.015,.4,4),GOLD,wpv,0,-.2,0);
+      const w=watch(.38);w.position.y=-.8;w.rotation.y=Math.PI/2;wpv.add(w)}
+    const lg=new THREE.Group();lg.position.set(s*.2,.7,0);bd.add(lg);
+    mk(new THREE.CylinderGeometry(.14,.12,.55,8),LAV,lg,0,-.28,0);mk(SP,W,lg,0,-.58,-.12,.17,.1,.36);legs.push(lg);
+  });
+  g.traverse(o=>{if(o.isMesh)o.receiveShadow=false});
+  function anim(p,ph,t){const s=Math.sin(ph),air=!p.onGround;
+    g.scale.y=.8*(1-.45*p.duck);bd.rotation.x=-.25*p.duck;
+    bd.position.y=air?0:Math.abs(s)*.14;
+    legs[0].rotation.x=air?-.7:s*.95;legs[1].rotation.x=air?-.4:-s*.95;
+    arms[0].rotation.x=air?-2.2:-s*.9;arms[1].rotation.x=air?-2.4:s*.9;
+    ears.forEach((e,i)=>{e.rotation.x=.55+(air?.5:Math.sin(ph*2+i)*.22);e.rotation.z=(i?1:-1)*(.15+Math.sin(ph+i)*.08)});
+    wpv.rotation.x=Math.sin(ph*2)*.5;wpv.rotation.z=.25+Math.sin(ph*2+1)*.25;
+    hd.rotation.y=Math.sin(t*.9)*.12} // small natural glance, never a backwards turn
+  return {g,anim}}
+
+/* ---------- Player 2: Alice (classic animated look) ---------- */
+function makeAlice(){
+  const SKIN=M(0xffdcc4,{roughness:.9}),HAIR=M(0xf2c54b,{roughness:.7}),BLUE=M(0x3f86d6,{roughness:.85}),
+    WHITE=M(0xffffff,{roughness:.9,emissive:0x2a2a2a}),PINK=M(0xe68a8a),DS=THREE.DoubleSide;
+  const BLUE2=M(0x3f86d6,{roughness:.85,side:DS}),WHITE2=M(0xffffff,{roughness:.9,emissive:0x2a2a2a,side:DS});
+  const g=new THREE.Group(),bd=new THREE.Group();g.add(bd);g.scale.setScalar(.8);
+  // legs: white stockings, black Mary Janes with a strap
+  const legs=[];
+  [-1,1].forEach(s=>{const lg=new THREE.Group();lg.position.set(s*.13,.78,0);bd.add(lg);
+    mk(new THREE.CylinderGeometry(.075,.062,.66,10),WHITE,lg,0,-.33,0);
+    mk(SP,BLK,lg,0,-.68,-.05,.085,.06,.15);
+    mk(new THREE.BoxGeometry(.18,.025,.03),BLK,lg,0,-.64,-.06);
+    legs.push(lg)});
+  // flared knee-length dress with a white petticoat rim; the pinafore apron sits on the front of the skirt
+  const skirt=new THREE.Group();skirt.position.y=1.42;bd.add(skirt);
+  mk(new THREE.CylinderGeometry(.24,.6,.74,22,1,true),BLUE2,skirt,0,-.37,0);
+  const rim=mk(new THREE.TorusGeometry(.6,.025,6,26),WHITE,skirt,0,-.74,0);rim.rotation.x=Math.PI/2;
+  mk(new THREE.CylinderGeometry(.262,.565,.6,18,1,true,Math.PI*.6,Math.PI*.8),WHITE2,skirt,0,-.34,0);
+  // bodice, apron bib, straps and the big bow at the back
+  mk(SP,BLUE,bd,0,1.58,0,.25,.28,.19);
+  mk(new THREE.BoxGeometry(.3,.28,.02),WHITE,bd,0,1.55,-.19);
+  [-1,1].forEach(s=>{mk(new THREE.BoxGeometry(.055,.36,.02),WHITE,bd,s*.1,1.6,.19);
+    const st=mk(new THREE.BoxGeometry(.055,.03,.4),WHITE,bd,s*.12,1.8,0);
+    const lp=mk(SP,WHITE,bd,s*.13,1.4,.22,.13,.08,.04);lp.rotation.z=s*.35;
+    const tl=mk(new THREE.BoxGeometry(.07,.3,.015),WHITE,bd,s*.07,1.22,.22);tl.rotation.z=s*.25});
+  mk(SP,WHITE,bd,0,1.4,.23,.05,.05,.04);                        // bow knot
+  mk(new THREE.BoxGeometry(.5,.05,.4),WHITE,bd,0,1.41,0,1,1,1).scale.set(1,1,1); // waistband
+  const col=mk(new THREE.TorusGeometry(.13,.035,6,16),WHITE,bd,0,1.82,0);col.rotation.x=Math.PI/2; // collar
+  mk(new THREE.CylinderGeometry(.06,.07,.12,8),SKIN,bd,0,1.88,0); // neck
+  // puffed short sleeves, bare arms
+  const arms=[];
+  [-1,1].forEach(s=>{mk(SP,BLUE,bd,s*.27,1.73,0,.14,.12,.13);
+    const ag=new THREE.Group();ag.position.set(s*.29,1.72,0);ag.rotation.z=s*.12;bd.add(ag);
+    mk(new THREE.CylinderGeometry(.045,.04,.44,8),SKIN,ag,0,-.27,0);mk(SP,SKIN,ag,0,-.5,0,.055,.06,.055);arms.push(ag)});
+  // head: golden hair with bangs, long back hair, black headband with a bow on top
+  const hd=new THREE.Group();hd.position.set(0,2.1,0);bd.add(hd);
+  mk(SP,SKIN,hd,0,0,0,.24,.26,.235);
+  [-1,1].forEach(s=>{mk(SP,BLK,hd,s*.085,.01,-.215,.03,.04,.02);mk(SP,PINK,hd,s*.13,-.08,-.18,.04,.025,.02)});
+  mk(SP,SKIN,hd,0,-.04,-.24,.025,.025,.025);                      // nose
+  mk(SP,PINK,hd,0,-.13,-.215,.035,.015,.015);                     // mouth
+  mk(new THREE.SphereGeometry(1,18,12,0,Math.PI*2,0,1.35),HAIR,hd,0,.02,.01,.265,.28,.265); // crown
+  mk(SP,HAIR,hd,0,.15,-.17,.2,.07,.09);                           // bangs
+  [-1,1].forEach(s=>mk(SP,HAIR,hd,s*.19,-.08,.02,.08,.16,.12));   // sides
+  const back=new THREE.Group();back.position.set(0,-.02,.12);hd.add(back);
+  mk(SP,HAIR,back,0,-.18,.04,.25,.33,.13);                        // long hair down the back
+  [-1,1].forEach(s=>mk(SP,HAIR,back,s*.15,-.32,.03,.1,.18,.09));
+  const band=mk(new THREE.TorusGeometry(.288,.03,6,20,Math.PI),BLK,hd,0,.02,.02);
+  [-1,1].forEach(s=>{const b=mk(SP,BLK,hd,s*.08,.3,.05,.08,.05,.035);b.rotation.z=-s*.4});
+  mk(SP,BLK,hd,0,.29,.05,.035,.035,.03);
+  g.traverse(o=>{if(o.isMesh)o.receiveShadow=false});
+  function anim(p,ph,t){const s=Math.sin(ph),air=!p.onGround,d=p.duck;
+    g.scale.y=.8*(1-.4*d);bd.rotation.x=-.3*d;
+    bd.position.y=air?0:Math.abs(s)*.12;
+    legs[0].rotation.x=air?-.8:s*.8-.5*d;legs[1].rotation.x=air?-.25:-s*.8-.5*d;
+    arms[0].rotation.x=air?-2.6:-s*.85;arms[1].rotation.x=air?-2.6:s*.85;
+    arms[0].rotation.z=air?-.5:-.12-d*.3;arms[1].rotation.z=air?.5:.12+d*.3;
+    skirt.scale.set(1+d*.08,1-.05*Math.abs(s)-d*.1,1+d*.08);skirt.rotation.x=air?-.18:s*.05;skirt.rotation.z=air?0:Math.cos(ph)*.03;
+    back.rotation.x=.08+(air?.45:Math.abs(s)*.18);
+    hd.rotation.y=Math.sin(t*.8+1)*.1;hd.rotation.z=air?0:Math.cos(ph)*.04}
+  return {g,anim}}
 
 /* ---------- burrow ---------- */
-const MINX=-3.2,MAXX=3.2,segs=[],floaters=[]; // tunnel boundaries the rabbit can run between
+const MINX=-3.2,MAXX=3.2,segs=[],floaters=[]; // tunnel boundaries the players can run between
 const clampX=x=>Math.max(MINX,Math.min(MAXX,x));
 const DIRT=M(0xffffff,{vertexColors:true,side:THREE.BackSide,flatShading:true,roughness:1});
 const FLOOR=M(0x6a4a2c,{roughness:1}),ROOT=M(0x5b3a1c,{flatShading:true});
@@ -269,7 +379,7 @@ function mkSeg(zc){
   for(let k=0;k<7;k++){ // floating Wonderland things
     const t=k%4,f=new THREE.Group();
     if(t===0){mk(new THREE.CylinderGeometry(.35,.22,.35,16),M(0xfdfdf8),f,0,.18,0);mk(new THREE.CylinderGeometry(.5,.45,.05,16),M(0x5aa0d8),f,0,0,0);
-      const h=mk(new THREE.TorusGeometry(.13,.035,6,12),M(0xfdfdf8),f,.4,.18,0)}
+      mk(new THREE.TorusGeometry(.13,.035,6,12),M(0xfdfdf8),f,.4,.18,0)}
     else if(t===1||t===2){mk(new THREE.BoxGeometry(.9,1.3,.03),M(0xffffff,{map:CARD[k%4]}),f)}
     else{const col=caps[k%3];mk(new THREE.CylinderGeometry(.1,.14,.5,8),M(0xf3ead2),f,0,-.2,0);
       mk(new THREE.SphereGeometry(.5,12,8,0,6.283,0,1.57),M(col,{emissive:col,emissiveIntensity:1}),f,0,0,0)}
@@ -292,7 +402,7 @@ function mkCarrot(){const g=new THREE.Group(),c=mk(new THREE.ConeGeometry(.17,.7
   for(let i=0;i<3;i++){const l=mk(new THREE.ConeGeometry(.05,.3,4),LEAF,g,(i-1)*.07,1.45,0);l.rotation.z=(i-1)*.4}g.rotation.z=.25;return g}
 function mkWatch(){const g=new THREE.Group(),w=watch(.5);w.position.y=1.2;g.add(w);
   const h=new THREE.Mesh(new THREE.SphereGeometry(.85,12,8),new THREE.MeshBasicMaterial({color:0xffd24a,transparent:true,opacity:.2,depthWrite:false}));h.position.y=1.2;g.add(h);return g}
-function addEnt(k,x,z){const m={rock:mkRock,root:mkRoot,carrot:mkCarrot,watch:mkWatch}[k]();m.position.set(x,0,z);S.add(m);ents.push({k,m})}
+function addEnt(k,x,z){const m={rock:mkRock,root:mkRoot,carrot:mkCarrot,watch:mkWatch}[k]();m.position.set(x,0,z);S.add(m);ents.push({k,m,hitBy:{}})}
 const WATCH_CHANCE=.08; // share of carrot trails that hide a pocket watch
 function spawnRow(){
   const type=Math.random()<.5?'rock':'root',n=Math.random()<.35?2:1,xs=[];
@@ -302,27 +412,53 @@ function spawnRow(){
   if(Math.random()<.85){const cx=MINX+.5+Math.random()*(MAXX-MINX-1),slope=(Math.random()-.5)*1.2,wk=slowT<=0&&!ents.some(e=>e.k==='watch')&&Math.random()<WATCH_CHANCE?2:-1;
     for(let k=0;k<5;k++)addEnt(k===wk?'watch':'carrot',clampX(cx+(k-2)*slope),-110-gap*.5+(k-2)*2.2)}}
 
+/* ---------- players ---------- */
+const KEYS_SOLO={l:['KeyA','ArrowLeft'],r:['KeyD','ArrowRight'],j:['KeyW','ArrowUp'],d:['KeyS','ArrowDown']};
+const KEYS_P1={l:['KeyA'],r:['KeyD'],j:['KeyW'],d:['KeyS']},KEYS_P2={l:['ArrowLeft'],r:['ArrowRight'],j:['ArrowUp'],d:['ArrowDown']};
+function newPlayer(i,name,rig){S.add(rig.g);rig.g.visible=false;
+  return {i,name,rig,keys:KEYS_SOLO,on:false,alive:false,x:0,vx:0,lean:0,y:0,vy:0,onGround:true,duck:0,lives:3,inv:0,score:0,carrots:0,ph:i*1.3,
+    mb:{x:null,b:0,z:0,t:-1e9,pa:0,pb:0},port:null,linked:false,hud:$('p'+(i+1)+'h')}}
+const players=[newPlayer(0,'White Rabbit',makeRabbit()),newPlayer(1,'Alice',makeAlice())];
+const P1=players[0],P2=players[1];
+
 /* ---------- game state ---------- */
-let state='menu',rx=0,vx=0,lean=0,ry=0,vy=0,onGround=true,duckAmt=0,lives=3,inv=0,score=0,time=0,speed=9,slowT=0,slowMul=1,carrots=0,shake=0,nextSp=0,dist=0,ph=0,t=0,pa=0,pb=0,best=0,camX=0,camY=4.6;
+let state='menu',mode=1,time=0,speed=9,slowT=0,slowMul=1,shake=0,nextSp=0,dist=0,t=0,best=0,camX=0,camY=4.6;
 try{best=+localStorage.getItem('wrBest')||0}catch(e){}
-function hearts(){$('hp').innerHTML=[0,1,2].map(i=>i<lives?'♥':'<span class="x">♥</span>').join('')}
-function reset(){ents.splice(0).forEach(e=>S.remove(e.m));rx=0;vx=0;lean=0;ry=0;vy=0;onGround=true;lives=3;inv=0;score=0;time=0;slowT=0;slowMul=1;carrots=0;shake=0;nextSp=20;dist=0;hearts()}
-function start(){reset();state='play';document.body.classList.remove('menu');$('menu').style.display=$('over').style.display=$('pause').style.display='none';$('hud').style.display='block'}
-function end(){state='over';try{if(score>best){best=score|0;localStorage.setItem('wrBest',best)}}catch(e){}
-  $('ovt').innerHTML='You ran '+(dist|0)+' m, gathered '+carrots+' carrots and scored <b>'+(score|0)+'</b>.<br>Best: '+(best|0);$('over').style.display='flex'}
-$('go').onclick=start;$('again').onclick=start;
+function setMode(n){mode=n;document.body.classList.toggle('solo',n===1);
+  $('m1').setAttribute('aria-pressed',n===1);$('m2').setAttribute('aria-pressed',n===2);
+  $('c2').disabled=n===1;$('c2').title=n===1?'Choose 2 Players to connect Alice':''}
+function hearts(p){p.hud.querySelector('.hp').innerHTML=[0,1,2].map(i=>i<p.lives?'♥':'<span class="x">♥</span>').join('')}
+function reset(){ents.splice(0).forEach(e=>S.remove(e.m));time=0;slowT=0;slowMul=1;shake=0;nextSp=20;dist=0;
+  players.forEach((p,i)=>{p.on=i<mode;p.alive=p.on;p.keys=mode===1?KEYS_SOLO:i?KEYS_P2:KEYS_P1;
+    p.x=mode===1?0:i?1.2:-1.2;p.vx=p.lean=p.y=p.vy=p.duck=p.inv=p.score=p.carrots=0;p.onGround=true;p.lives=3;
+    p.rig.g.visible=p.on;p.rig.g.position.set(p.x,0,0);p.hud.style.display=p.on?'block':'none';p.hud.classList.remove('out');hearts(p)});
+  camX=0}
+function start(){reset();state='play';document.body.classList.remove('menu');
+  $('menu').style.display=$('over').style.display=$('pause').style.display='none';$('hud').style.display='block'}
+function toMenu(){state='menu';document.body.classList.add('menu');$('over').style.display=$('pause').style.display='none';
+  $('hud').style.display='none';$('menu').style.display='block'}
+function end(){state='over';const L=$('ovr');
+  if(mode===1){try{if(P1.score>best){best=P1.score|0;localStorage.setItem('wrBest',best)}}catch(e){}
+    $('ovh').textContent='Too late!';
+    $('ovt').innerHTML='You ran '+(dist|0)+' m, gathered '+P1.carrots+' carrots and scored <b>'+(P1.score|0)+'</b>.<br>Best: '+(best|0);L.innerHTML=''}
+  else{const a=P1.score|0,b=P2.score|0;
+    $('ovh').textContent=a===b?'It’s a tie!':(a>b?'The White Rabbit':'Alice')+' wins!';
+    $('ovt').textContent='You ran '+(dist|0)+' m together.';
+    L.innerHTML=players.map(p=>'<tr class="'+((p.score|0)>=Math.max(a,b)&&a!==b?'win':'')+'"><td>'+p.name+'</td><td>'+p.carrots+' carrots</td><td>'+(p.score|0)+'</td></tr>').join('')}
+  $('over').style.display='flex'}
+$('m1').onclick=()=>setMode(1);$('m2').onclick=()=>setMode(2);
+$('go').onclick=start;$('again').onclick=start;$('tomenu').onclick=toMenu;
 document.querySelectorAll('#help pre').forEach(pre=>{const b=document.createElement('button');b.className='cp';b.textContent='Copy code';
   b.onclick=async()=>{const txt=pre.textContent;
     try{await navigator.clipboard.writeText(txt)}catch(e){const r=document.createRange();r.selectNodeContents(pre);const sl=getSelection();sl.removeAllRanges();sl.addRange(r);document.execCommand('copy');sl.removeAllRanges()}
     b.textContent='Copied ✓';setTimeout(()=>b.textContent='Copy code',1500)};
   pre.before(b)});
-$('hb').onclick=()=>$('help').style.display='flex';$('hx').onclick=()=>$('help').style.display='none';
+$('hb').onclick=$('hb2').onclick=()=>$('help').style.display='flex';$('hx').onclick=()=>$('help').style.display='none';
 
 /* ---------- input ---------- */
-const keys=new Set(),held=(...c)=>c.some(k=>keys.has(k));
-let mbX=null,mbB=0,mbZ=0,mbT=-1e9; // smoothed micro:bit tilt, B state and when it arrived
-const jump=()=>{if(state==='play'&&onGround){vy=11.5;onGround=false}};
-const duckStart=()=>{if(state==='play'&&!onGround)vy=Math.min(vy,-18)}; // pressing duck mid-air drops you fast
+const keys=new Set(),held=c=>c.some(k=>keys.has(k));
+const jump=p=>{if(state==='play'&&p.alive&&p.onGround){p.vy=11.5;p.onGround=false}};
+const duckStart=p=>{if(state==='play'&&p.alive&&!p.onGround)p.vy=Math.min(p.vy,-18)}; // pressing duck mid-air drops you fast
 function togglePause(){if(state==='play'){state='paused';$('pause').style.display='flex'}
   else if(state==='paused'){state='play';$('pause').style.display='none'}}
 addEventListener('keydown',e=>{const k=e.code;
@@ -330,106 +466,116 @@ addEventListener('keydown',e=>{const k=e.code;
   keys.add(k);if(e.repeat)return;
   if(k==='Space'){togglePause();return}
   if((state==='menu'||state==='over')&&$('help').style.display!=='flex'&&k==='Enter'){start();return}
-  if(k==='ArrowUp'||k==='KeyW')jump();else if(k==='ArrowDown'||k==='KeyS')duckStart()});
+  players.forEach(p=>{if(!p.on)return;if(p.keys.j.includes(k))jump(p);else if(p.keys.d.includes(k))duckStart(p)})});
 addEventListener('keyup',e=>keys.delete(e.code));
 addEventListener('blur',()=>{keys.clear();if(state==='play')togglePause()});
 const TILT_DZ=80,TILT_FULL=700; // dead zone around flat, and the tilt that reaches the tunnel wall
 function tiltTarget(x){const m=Math.abs(x);if(m<TILT_DZ)return 0;
   const n=Math.min(1,(m-TILT_DZ)/(TILT_FULL-TILT_DZ));return x<0?n*MINX:n*MAXX}
-function onLine(l){l=l.trim();if(!l)return;let x,a,b;
+function setConn(p,txt,cls){const n=p.i+1,bar=$('s'+n+'b');$('s'+n+'m').textContent=txt;$('s'+n+'m').className='st'+(cls?' '+cls:'');
+  bar.textContent=cls==='ok'?'✓':cls==='wait'?'…':'';} // the in-game bar keeps it short
+function onLine(p,l){l=l.trim();if(!l)return;let x,a,b;
   if(l[0]==='{'){try{const j=JSON.parse(l);x=+j.x||0;a=+(j.a??j.btn_a)||0;b=+(j.b??j.btn_b)||0}catch(e){return}}
-  else{const p=l.split(',');if(p.length!==3||!p.every(v=>/^-?\d+$/.test(v.trim())))return; // skip lines damaged in transit
-    x=+p[0];a=+p[1];b=+p[2]}
-  if(isNaN(x))return;$('conn').textContent='X='+x+'  A='+a+'  B='+b;
-  $('tb').style.left=(74+Math.max(-1,Math.min(1,x/1024))*74)+'px';
-  mbX=mbX===null?x:mbX+(x-mbX)*.2;mbZ=b?0:mbZ+1;if(b)mbB=1;else if(mbZ>=2)mbB=0; // release only after 2 'up' readings
-  mbT=performance.now(); // low-pass: the accelerometer is noisy in a hand
-  if(a&&b){if(!(pa&&pb))togglePause()} // A+B together pauses / resumes
-  else{if(a&&!pa){if(state==='play')jump();else if(state!=='paused')start()}
-    if(b&&!pb)duckStart()}
-  pa=a;pb=b}
-let port=null,linked=false;
-async function connect(){
-  if(!('serial' in navigator)){alert('Web Serial needs Chrome or Edge on desktop.');return}
-  try{port=await navigator.serial.requestPort();await port.open({baudRate:115200});
-    linked=true;$('conn').textContent='micro:bit connected, waiting for data…';$('tw').style.display='block';
+  else{const q=l.split(',');if(q.length!==3||!q.every(v=>/^-?\d+$/.test(v.trim())))return; // skip lines damaged in transit
+    x=+q[0];a=+q[1];b=+q[2]}
+  if(isNaN(x))return;const m=p.mb;
+  if(m.t<0)setConn(p,'✓ Connected. Tilt to test, press A to start.','ok');
+  m.x=m.x===null?x:m.x+(x-m.x)*.2; // low-pass: the accelerometer is noisy in a hand
+  m.z=b?0:m.z+1;if(b)m.b=1;else if(m.z>=2)m.b=0; // release only after 2 'up' readings
+  m.t=performance.now();
+  if(a&&b){if(!(m.pa&&m.pb))togglePause()} // A+B together pauses / resumes
+  else{if(a&&!m.pa){if(state==='play')jump(p);else if(state!=='paused'&&$('help').style.display!=='flex')start()}
+    if(b&&!m.pb)duckStart(p)}
+  m.pa=a;m.pb=b}
+async function connect(p){
+  if(p.port)return;
+  if(p.i===1&&mode===1)return;
+  if(!('serial' in navigator)){setConn(p,'Web Serial needs Chrome or Edge on a computer.');return}
+  let port;
+  try{port=await navigator.serial.requestPort();
+    const other=players.find(o=>o!==p&&o.port===port);
+    if(other){setConn(p,'That board is already Player '+(other.i+1)+'. Pick the other one.');return}
+    await port.open({baudRate:115200});p.port=port;
+    p.linked=true;p.mb.t=-1;setConn(p,'Connected, waiting for data…','wait');
     const dec=new TextDecoderStream();port.readable.pipeTo(dec.writable).catch(()=>{});
     const rd=dec.readable.getReader();let buf='';
     for(;;){const {value,done}=await rd.read();if(done)break;buf+=value;let i;
-      while((i=buf.indexOf('\n'))>=0){onLine(buf.slice(0,i));buf=buf.slice(i+1)}}
-  }catch(e){$('conn').textContent=e&&e.name==='NotFoundError'?'':'Could not connect: '+(e.message||e)}
-  if(port){try{await port.close()}catch(e){}port=null}
-  mbX=null;mbB=0;if(linked){linked=false;$('conn').textContent='disconnected'}}
-$('cb').onclick=$('cb2').onclick=()=>{if(!port)connect()};$('hb2').onclick=$('hb').onclick;
-new MutationObserver(()=>{const c=$('conn').textContent; // mirror the status on the intro card in plain words
-  $('conn2').textContent=/^X=/.test(c)?'✓ micro:bit connected! Tilt it to test, press A to start.':c||'Not connected. You can also play with the keyboard.'})
-  .observe($('conn'),{childList:true,characterData:true,subtree:true});addEventListener('click',e=>{if(e.target.blur)e.target.blur()});
+      while((i=buf.indexOf('\n'))>=0){onLine(p,buf.slice(0,i));buf=buf.slice(i+1)}}
+  }catch(e){if(!p.port)setConn(p,e&&e.name==='NotFoundError'?'Not connected':'Could not connect: '+(e.message||e))}
+  if(p.port){try{await p.port.close()}catch(e){}p.port=null}
+  Object.assign(p.mb,{x:null,b:0,z:0,t:-1e9});if(p.linked){p.linked=false;setConn(p,'Disconnected')}}
+$('c1').onclick=$('cb1').onclick=()=>connect(P1);$('c2').onclick=$('cb2').onclick=()=>connect(P2);
+addEventListener('click',e=>{if(e.target.blur)e.target.blur()});
 
 /* ---------- main loop ---------- */
-const hudTxt={};function setT(id,v,html){if(hudTxt[id]===v)return;hudTxt[id]=v;$(id)[html?'innerHTML':'textContent']=v}
-function hit(e){if(inv>0)return;e.dead=true;lives--;inv=1.6;shake=.6;hearts();
-  $('flash').style.opacity=.35;setTimeout(()=>$('flash').style.opacity=0,120);if(lives<=0)end()}
-const WARM=15,BASE0=12,KEY_SPEED=8,SLOW_DUR=20,SLOW_MUL=.5;
+const hudTxt={};function setT(el,v,html){const k=el.id||el.className+(el.parentNode&&el.parentNode.id);if(hudTxt[k]===v)return;hudTxt[k]=v;el[html?'innerHTML':'textContent']=v}
+function hit(p,e){if(p.inv>0||e.hitBy[p.i])return;e.hitBy[p.i]=1;p.lives--;p.inv=1.6;shake=.6;hearts(p);
+  $('flash').style.opacity=.35;setTimeout(()=>$('flash').style.opacity=0,120);
+  if(p.lives<=0){p.alive=false;p.rig.g.visible=false;p.hud.classList.add('out');if(!players.some(o=>o.alive))end()}}
+const WARM=7,BASE0=12,KEY_SPEED=8,SLOW_DUR=20,SLOW_MUL=.5;
 function baseSpeed(tm){if(tm<WARM)return BASE0;const u=tm-WARM; // gentle start, then a 4s kick and steady ramp
   return Math.min(44,BASE0+8*Math.min(1,u/4)+u*.4)}
+function movePlayer(p,dt,now,play){
+  if(play&&p.alive&&dt>0){const kd=(held(p.keys.r)?1:0)-(held(p.keys.l)?1:0),m=p.mb;
+    const tilt=m.x!==null&&now-m.t<500;
+    if(kd||!tilt){p.vx+=(kd*KEY_SPEED-p.vx)*Math.min(1,dt*14);p.x+=p.vx*dt} // held key wins over tilt
+    else{const nx=p.x+(tiltTarget(m.x)-p.x)*Math.min(1,dt*5);p.vx=(nx-p.x)/dt;p.x=nx}
+    if(p.x<MINX||p.x>MAXX){p.x=clampX(p.x);p.vx=0}}
+  if(!p.onGround){p.vy-=32*dt;p.y+=p.vy*dt;if(p.y<=0){p.y=0;p.vy=0;p.onGround=true}}
+  const ducking=play&&p.alive&&p.onGround&&(held(p.keys.d)||p.mb.b===1);
+  p.duck+=((ducking?1:0)-p.duck)*Math.min(1,dt*14);
+  if(play)p.inv=Math.max(0,p.inv-dt);
+  p.ph+=dt*speed*.55;
+  const g=p.rig.g;g.position.set(p.x,p.y,0);
+  p.lean+=(Math.max(-8,Math.min(8,p.vx))-p.lean)*Math.min(1,dt*6);g.rotation.y=p.lean*-.06;g.rotation.z=p.lean*-.02;
+  p.rig.anim(p,p.ph,t);
+  g.visible=p.alive&&(p.inv<=0||Math.floor(t*14)%2===0)}
 let last=performance.now(),ftAvg=16,lowT=0;
 function frame(now){requestAnimationFrame(frame);
   const raw=Math.min(200,now-last),dt=Math.min(.1,raw/1e3);last=now;
   ftAvg+=(raw-ftAvg)*.05; // drop resolution if the machine can't keep up
   if(ftAvg>24&&pr>.5){if((lowT+=dt)>1.5){pr*=.8;R.setPixelRatio(pr);R.setSize(innerWidth,innerHeight);lowT=0;ftAvg=16}}else lowT=0;
-  if(state==='menu')return; // the intro clip is showing, skip 3D work
+  if(state==='menu')return; // the start screen is showing, skip 3D work
   if(state==='paused'){R.render(S,C);return} // frozen: no timers, spawns or movement advance
   t+=dt;const play=state==='play';
   if(play){time+=dt;slowT=Math.max(0,slowT-dt);
     slowMul+=((slowT>0?SLOW_MUL:1)-slowMul)*Math.min(1,dt*(slowT>0?4:1.2)); // quick slow-down, gentle recovery
-    speed=baseSpeed(time)*slowMul}else speed=state==='menu'?9:4;
-  const dz=speed*dt;dist+=play?dz:0;
+    speed=baseSpeed(time)*slowMul}else speed=4;
+  const dz=speed*dt;if(play)dist+=dz;
   segs.forEach(s=>{s.position.z+=dz;if(s.position.z>75)s.position.z-=200});
   floaters.forEach(f=>{f.m.position.y=f.y0+Math.sin(t*f.sp+f.ph)*.35;f.m.rotation.y+=dt*.4*f.sp});
-  // rabbit
-  if(play&&dt>0){const kd=(held('ArrowRight','KeyD')?1:0)-(held('ArrowLeft','KeyA')?1:0);
-    const tilt=mbX!==null&&now-mbT<500;
-    if(kd||!tilt){vx+=(kd*KEY_SPEED-vx)*Math.min(1,dt*14);rx+=vx*dt} // held key wins over tilt
-    else{const nx=rx+(tiltTarget(mbX)-rx)*Math.min(1,dt*5);vx=(nx-rx)/dt;rx=nx}
-    if(rx<MINX||rx>MAXX){rx=clampX(rx);vx=0}}
-  if(!onGround){vy-=32*dt;ry+=vy*dt;if(ry<=0){ry=0;vy=0;onGround=true}}
-  const ducking=play&&onGround&&(held('ArrowDown','KeyS')||mbB===1);
-  duckAmt+=((ducking?1:0)-duckAmt)*Math.min(1,dt*14);
-  if(play){inv=Math.max(0,inv-dt);shake=Math.max(0,shake-dt*1.5)}
-  ph+=dt*speed*.55;const s=Math.sin(ph),air=!onGround;
-  rb.position.set(rx,ry,0);lean+=(Math.max(-8,Math.min(8,vx))-lean)*Math.min(1,dt*6);rb.rotation.y=lean*-.06;rb.rotation.z=lean*-.02;
-  rb.scale.y=.8*(1-.45*duckAmt);bd.rotation.x=-.25*duckAmt;
-  bd.position.y=air?0:Math.abs(s)*.14;
-  legs[0].rotation.x=air?-.7:s*.95;legs[1].rotation.x=air?-.4:-s*.95;
-  arms[0].rotation.x=air?-2.2:-s*.9;arms[1].rotation.x=air?-2.4:s*.9;
-  ears.forEach((e,i)=>{e.rotation.x=.55+(air?.5:Math.sin(ph*2+i)*.22);e.rotation.z=(i?1:-1)*(.15+Math.sin(ph+i)*.08)});
-  wpv.rotation.x=Math.sin(ph*2)*.5;wpv.rotation.z=.25+Math.sin(ph*2+1)*.25;
-  hd.rotation.y=Math.sin(t*.9)*.12; // small natural glance, never a backwards turn
-  rb.visible=inv<=0||Math.floor(t*14)%2===0;
+  // players
+  players.forEach(p=>{if(p.on)movePlayer(p,dt,now,play)});
+  if(mode===2&&P1.alive&&P2.alive){const d=P2.x-P1.x,gap=.9; // they bump shoulders instead of overlapping
+    if(Math.abs(d)<gap){const push=(gap-Math.abs(d))/2*(d<0?-1:1);P1.x=clampX(P1.x-push);P2.x=clampX(P2.x+push)}}
+  if(play)shake=Math.max(0,shake-dt*1.5);
   // world logic
-  if(play){nextSp-=dz;if(nextSp<=0)spawnRow();
-    score+=dz*.5}
+  if(play){nextSp-=dz;if(nextSp<=0)spawnRow();players.forEach(p=>{if(p.alive)p.score+=dz*.5})}
   for(let i=ents.length-1;i>=0;i--){const e=ents[i],m=e.m;m.position.z+=dz;const z=m.position.z;
     if(e.k==='carrot'||e.k==='watch')m.rotation.y+=dt*3;
-    if(play&&!e.dead){const dx=Math.abs(m.position.x-rx),near=w=>z>-w&&z-dz<w; // swept: did it pass the rabbit this frame?
-      if(e.k==='rock'){if(dx<1.1&&near(.9)&&ry<.8)hit(e)}            // rock ~1.7 wide + rabbit
-      else if(e.k==='root'){if(dx<1.35&&near(.7)&&duckAmt<.85)hit(e)} // root bar ~2.3 wide + rabbit
-      else if(dx<.95&&near(.9)){e.dead=true;S.remove(m);
-        if(e.k==='carrot'){carrots++;score+=25}else{slowT=SLOW_DUR;score+=150}}}
+    if(play&&!e.dead){const near=w=>z>-w&&z-dz<w; // swept: did it pass the players this frame?
+      for(const p of players){if(!p.alive||e.dead)continue;const dx=Math.abs(m.position.x-p.x);
+        if(e.k==='rock'){if(dx<1.1&&near(.9)&&p.y<.8)hit(p,e)}            // rock ~1.7 wide + runner
+        else if(e.k==='root'){if(dx<1.35&&near(.7)&&p.duck<.85)hit(p,e)} // root bar ~2.3 wide + runner
+        else if(dx<.95&&near(.9)){e.dead=true;S.remove(m);
+          if(e.k==='carrot'){p.carrots++;p.score+=25}else{slowT=SLOW_DUR;p.score+=150}}}}
     if(z>12||e.dead&&e.k!=='rock'&&e.k!=='root'){S.remove(m);ents.splice(i,1)}}
-  // camera
+  // camera follows whoever is still running
+  const alive=players.filter(p=>p.on&&p.alive),fx=alive.length?alive.reduce((a,p)=>a+p.x,0)/alive.length:camX/.55;
+  const fy=alive.length?Math.max(...alive.map(p=>p.y)):0;
   const sx=shake*(Math.random()-.5)*.6,sy=shake*(Math.random()-.5)*.6;
-  camX+=(rx*.55-camX)*Math.min(1,dt*5);
-  camY+=(4.6+ry*.35-camY)*Math.min(1,dt*6);
+  camX+=(fx*.55-camX)*Math.min(1,dt*5);
+  camY+=(4.6+fy*.35-camY)*Math.min(1,dt*6);
   C.position.set(camX+sx,camY+sy,7.5);
-  C.lookAt(rx*.4,1.5,-8);
+  C.lookAt(fx*.4,1.5,-8);
   const fov=65+(speed-20)*.25;if(Math.abs(C.fov-fov)>.05){C.fov=fov;C.updateProjectionMatrix()}
   // HUD
-  setT('scv',score|0);setT('dv',(dist|0)+' m · '+carrots+' carrots');
-  setT('mx',slowT>0?'⏱ Slow time '+slowT.toFixed(1)+'s<div id="sb"><i style="width:'+(slowT/SLOW_DUR*100).toFixed(1)+'%"></i></div>':'',1);
-  setT('ph',!play?'':time<WARM?'Warm-up · '+Math.ceil(WARM-time)+'s':time<WARM+3?'Speeding up!':'');
+  players.forEach(p=>{if(!p.on)return;setT(p.hud.querySelector('.sc'),p.score|0);setT(p.hud.querySelector('small'),p.carrots+' carrots')});
+  setT($('dv'),(dist|0)+' m');
+  setT($('mx'),slowT>0?'⏱ Slow time '+slowT.toFixed(1)+'s<div id="sb"><i style="width:'+(slowT/SLOW_DUR*100).toFixed(1)+'%"></i></div>':'',1);
+  setT($('ph'),!play?'':time<WARM?'Warm-up · '+Math.ceil(WARM-time)+'s':time<WARM+3?'Speeding up!':'');
   R.render(S,C)}
-hearts();requestAnimationFrame(frame);
+setMode(1);players.forEach(hearts);requestAnimationFrame(frame);
 addEventListener('resize',()=>{fitRes();C.aspect=innerWidth/innerHeight;C.updateProjectionMatrix()});
 </script>
 </body>
