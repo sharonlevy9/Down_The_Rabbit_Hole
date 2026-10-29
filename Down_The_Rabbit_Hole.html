@@ -479,7 +479,7 @@ function spawnRow(){
     for(let k=0;k<5;k++)addEnt(k===wk?'watch':'carrot',clampX(cx+(k-2)*slope),-110-gap*.5+(k-2)*2.2)}
   if(type==='rock'&&time>WARM&&players.some(p=>p.alive&&p.lives<MAX_LIVES)&&!ents.some(e=>e.k==='elixir')&&Math.random()<ELIXIR_CHANCE)addEnt('elixir',xs[0],-110);
   if(time>WARM&&tripT<=0&&Math.random()<COOKIE_CHANCE)addEnt('cookie',MINX+.5+Math.random()*(MAXX-MINX-1),-110-gap*.8)}
-const COOKIE_CHANCE=.16,ELIXIR_CHANCE=.05,MAX_LIVES=5; // the elixir is rarer than the watch and needs a jump
+const COOKIE_CHANCE=.16,ELIXIR_CHANCE=.15,MAX_LIVES=5; // the elixir is rarer than the watch and needs a jump
 
 /* ---------- players ---------- */
 const KEYS_SOLO={l:['KeyA','ArrowLeft'],r:['KeyD','ArrowRight'],j:['KeyW','ArrowUp'],d:['KeyS','ArrowDown']};
